@@ -10,6 +10,7 @@ import {
   listUserFilms,
 } from "@/lib/rbac";
 import { LogoutButton } from "./logout-button";
+import { FilmSwitcher } from "./film-switcher";
 
 // This page exists to make RBAC resolution visible and clickable, per the
 // Phase 0 process: verify a spine component in the browser before it's
@@ -97,24 +98,7 @@ export default async function MePage({
               No active film assignments — nothing to switch between yet.
             </p>
           ) : (
-            <div className="flex flex-wrap gap-2">
-              {films.map((f) => (
-                <Link
-                  key={f.filmId}
-                  href={`/me?film=${f.filmId}`}
-                  className={`rounded-sm border px-3 py-2 text-sm transition-colors ${
-                    f.filmId === selectedFilmId
-                      ? "border-verdigris bg-slate text-ink"
-                      : "border-line text-ink-soft hover:border-ink-soft"
-                  }`}
-                >
-                  <div className="font-medium">{f.filmTitle}</div>
-                  <div className="font-mono text-[11px] uppercase tracking-wide text-ink-soft">
-                    {f.roleLabel} · {f.filmStatus}
-                  </div>
-                </Link>
-              ))}
-            </div>
+            <FilmSwitcher films={films} selectedFilmId={selectedFilmId} />
           )}
         </section>
 

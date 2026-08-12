@@ -1,3 +1,7 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
 /* Backlot design tokens — copied verbatim from backlot-style-guide.html.
    Do not hand-edit a value here without updating the reference file too. */
 
