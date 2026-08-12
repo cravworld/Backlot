@@ -60,12 +60,18 @@ export default async function FilmDetailPage({ params }: { params: { id: string 
 
         <div className="mb-6 flex items-center gap-3">
           <FilmStatusBadge status={film.status} />
+          <Link
+            href={`/films/${film.id}/crew`}
+            className="text-sm text-verdigris hover:underline"
+          >
+            Crew →
+          </Link>
           {admin && (
             <Link
               href={`/films/${film.id}/assignments`}
               className="text-sm text-verdigris hover:underline"
             >
-              Manage crew assignments →
+              Manage login access →
             </Link>
           )}
         </div>

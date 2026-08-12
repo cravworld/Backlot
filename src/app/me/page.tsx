@@ -61,9 +61,14 @@ export default async function MePage({
           </div>
           <div className="flex items-center gap-4">
             {(orgRole === "OWNER" || orgRole === "ADMIN") && (
-              <Link href="/films" className="text-sm text-verdigris hover:underline">
-                Film registry
-              </Link>
+              <>
+                <Link href="/films" className="text-sm text-verdigris hover:underline">
+                  Film registry
+                </Link>
+                <Link href="/people" className="text-sm text-verdigris hover:underline">
+                  People
+                </Link>
+              </>
             )}
             <LogoutButton />
           </div>

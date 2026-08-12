@@ -4,6 +4,12 @@
 // Component 2 (Film registry): Film, FilmSettings — Film started as a
 //   minimal FK stub for FilmAssignment in component 1; this component
 //   fleshes it out with real management UI (create/edit/assign).
+// Component 3 (People registry): Person, PersonFilmRole. Deliberately a
+//   separate concept from User/FilmAssignment — a junior artist needs a
+//   Person record to appear on a distribution list but will never log in.
+//   Person.photoMediaId is intentionally NOT here yet — it lands with the
+//   Document/media store component so we're not FK'ing to a table that
+//   doesn't exist.
 //
 // See phase-0-findings.md section 1 for the model this implements.
 
@@ -30,6 +36,7 @@ model Organization {
   orgMemberships OrgMembership[]
   roles          Role[]
   films          Film[]
+  people         Person[]
 
   @@map("organization")
 }
@@ -53,6 +60,9 @@ model User {
 
   orgMemberships  OrgMembership[]
   filmAssignments FilmAssignment[]
+  // Optional 1:1 — set only when this login also corresponds to a human
+  // tracked in the People registry (most crew won't have a User at all).
+  person          Person?
 
   @@map("user")
 }
@@ -96,6 +106,7 @@ model Role {
   permissions     RolePermission[]
   fieldAccess     RoleFieldAccess[]
   filmAssignments FilmAssignment[]
+  personFilmRoles PersonFilmRole[]
 
   @@unique([orgId, key])
   @@map("role")
@@ -165,6 +176,7 @@ model Film {
 
   filmAssignments FilmAssignment[]
   settings        FilmSettings[]
+  personRoles     PersonFilmRole[]
 
   @@map("film")
 }
@@ -212,4 +224,69 @@ model FilmAssignment {
 
   @@unique([filmId, userId, roleId])
   @@map("film_assignment")
+}
+
+// ---------------------------------------------------------------------------
+// People registry — one record per human (crew, cast, vendors), org-wide
+// and independent of login. Referenced by every module; the source of
+// truth is managed on /people (org-admin only, full fields visible since
+// it's the data-entry surface). Per-film crew views elsewhere in the app
+// filter phone/email/whatsappNumber through role_field_access instead of
+// showing them unconditionally — that's a deliberate, separate boundary
+// from the /people admin screen, not an oversight.
+// ---------------------------------------------------------------------------
+
+model Person {
+  id             String   @id @default(cuid())
+  orgId          String
+  org            Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  fullName       String
+  preferredName  String?
+  // Tagged FieldGroup.CONTACT_RESTRICTED at the application layer — never
+  // rendered outside /people without a role_field_access grant for the
+  // viewer's current-film role.
+  phone          String?
+  email          String?
+  whatsappNumber String?
+  languages      String[]
+  // Flagged loudly per the deep-dive's instruction, not silently. Phase 0
+  // has no distribution feature yet to actually exclude minors from — the
+  // rule (opt-in, not opt-out, once that feature exists) is recorded in
+  // phase-0-findings.md open question 9. This flag exists now so the data
+  // is captured from day one rather than retrofitted.
+  isMinor        Boolean  @default(false)
+  notes          String?
+  // Optional link to a login — set only when this person also has
+  // platform access (e.g. a 1st AD is both a Person and a User).
+  userId         String?  @unique
+  user           User?    @relation(fields: [userId], references: [id])
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  filmRoles PersonFilmRole[]
+
+  @@map("person")
+}
+
+// The domain-level "who's on this film, in what capacity" record that
+// CallSheet Ops' recipient model will read from — distinct from
+// FilmAssignment, which governs login/RBAC. A person can hold a
+// PersonFilmRole with no corresponding FilmAssignment at all (most crew).
+model PersonFilmRole {
+  id                 String    @id @default(cuid())
+  personId           String
+  person             Person    @relation(fields: [personId], references: [id], onDelete: Cascade)
+  filmId             String
+  film               Film      @relation(fields: [filmId], references: [id], onDelete: Cascade)
+  roleId             String
+  role               Role      @relation(fields: [roleId], references: [id])
+  department         String?
+  contactChannelPref String?
+  languagePref       String?
+  startDate          DateTime?
+  endDate            DateTime?
+  createdAt          DateTime  @default(now())
+
+  @@unique([personId, filmId, roleId])
+  @@map("person_film_role")
 }

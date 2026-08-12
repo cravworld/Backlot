@@ -57,7 +57,7 @@ export default async function FilmsPage() {
                   <th className="py-2 pr-4">Title</th>
                   <th className="py-2 pr-4">Status</th>
                   <th className="py-2 pr-4">Language</th>
-                  <th className="py-2 pr-4">Crew</th>
+                  <th className="py-2 pr-4">Login access</th>
                   <th className="py-2"></th>
                 </tr>
               </thead>

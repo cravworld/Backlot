@@ -115,6 +115,50 @@ export async function createAssignment(filmId: string, formData: FormData) {
   revalidatePath(`/films/${filmId}/assignments`);
 }
 
+// --- Crew (PersonFilmRole) — distinct from FilmAssignment above. This is
+// the domain-level "who's on this film" record CallSheet Ops will read
+// for its recipient list; it has nothing to do with platform login.
+// Same org-admin gating as FilmAssignment for now — see
+// phase-0-findings.md's People registry component notes for why a finer
+// "who can staff a film" capability is deferred rather than built here.
+
+export async function createCrewRole(filmId: string, formData: FormData) {
+  const session = await requireOrgAdminSession();
+
+  const personId = String(formData.get("personId") ?? "");
+  const roleId = String(formData.get("roleId") ?? "");
+  const department = String(formData.get("department") ?? "").trim() || null;
+  const contactChannelPref = String(formData.get("contactChannelPref") ?? "").trim() || null;
+  const languagePref = String(formData.get("languagePref") ?? "").trim() || null;
+
+  if (!personId || !roleId) throw new Error("Person and role are required.");
+
+  const [person, role, film] = await Promise.all([
+    prisma.person.findFirst({ where: { id: personId, orgId: session.user.orgId } }),
+    prisma.role.findFirst({ where: { id: roleId, orgId: session.user.orgId } }),
+    prisma.film.findFirst({ where: { id: filmId, orgId: session.user.orgId } }),
+  ]);
+  if (!person || !role || !film) throw new Error("Invalid person, role, or film for this org.");
+
+  await prisma.personFilmRole.upsert({
+    where: { personId_filmId_roleId: { personId, filmId, roleId } },
+    update: { department, contactChannelPref, languagePref },
+    create: { personId, filmId, roleId, department, contactChannelPref, languagePref },
+  });
+
+  revalidatePath(`/films/${filmId}/crew`);
+}
+
+export async function removeCrewRole(crewRoleId: string, filmId: string) {
+  const session = await requireOrgAdminSession();
+
+  await prisma.personFilmRole.deleteMany({
+    where: { id: crewRoleId, film: { orgId: session.user.orgId } },
+  });
+
+  revalidatePath(`/films/${filmId}/crew`);
+}
+
 export async function setAssignmentStatus(
   assignmentId: string,
   filmId: string,
