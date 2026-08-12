@@ -1,12 +1,11 @@
-// Backlot — Phase 0, Component 1: Identity & RBAC
+// Backlot — Phase 0 schema.
+// Component 1 (Identity & RBAC): Organization, User, OrgMembership, Role,
+//   RolePermission, RoleFieldAccess, FilmAssignment.
+// Component 2 (Film registry): Film, FilmSettings — Film started as a
+//   minimal FK stub for FilmAssignment in component 1; this component
+//   fleshes it out with real management UI (create/edit/assign).
 //
-// Scope note: `Film` is included here only as a minimal FK target for
-// `FilmAssignment` (RBAC needs something to assign a role *to*). The Film
-// registry component (next up) will own the real fields, UI, and any
-// migration needed to extend this model — this is intentionally the
-// smallest shape that lets RBAC be built and verified on its own.
-//
-// See phase-0-findings.md section 1.1 for the model this implements.
+// See phase-0-findings.md section 1 for the model this implements.
 
 generator client {
   provider = "prisma-client-js"
@@ -165,8 +164,26 @@ model Film {
   updatedAt       DateTime   @updatedAt
 
   filmAssignments FilmAssignment[]
+  settings        FilmSettings[]
 
   @@map("film")
+}
+
+// Generic per-film key/value escape hatch for module-agnostic config that
+// doesn't obviously belong to a specific module's own table (sign-off:
+// keep as jsonb now, promote a key to an explicit column later if it
+// starts being queried heavily).
+model FilmSettings {
+  id        String   @id @default(cuid())
+  filmId    String
+  film      Film     @relation(fields: [filmId], references: [id], onDelete: Cascade)
+  key       String
+  value     Json
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([filmId, key])
+  @@map("film_settings")
 }
 
 // ---------------------------------------------------------------------------

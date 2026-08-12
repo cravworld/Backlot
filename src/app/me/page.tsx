@@ -58,7 +58,14 @@ export default async function MePage({
               RBAC verification
             </span>
           </div>
-          <LogoutButton />
+          <div className="flex items-center gap-4">
+            {(orgRole === "OWNER" || orgRole === "ADMIN") && (
+              <Link href="/films" className="text-sm text-verdigris hover:underline">
+                Film registry
+              </Link>
+            )}
+            <LogoutButton />
+          </div>
         </div>
 
         {/* Identity */}
