@@ -1,0 +1,197 @@
+// Backlot — Phase 0, Component 1: Identity & RBAC
+//
+// Scope note: `Film` is included here only as a minimal FK target for
+// `FilmAssignment` (RBAC needs something to assign a role *to*). The Film
+// registry component (next up) will own the real fields, UI, and any
+// migration needed to extend this model — this is intentionally the
+// smallest shape that lets RBAC be built and verified on its own.
+//
+// See phase-0-findings.md section 1.1 for the model this implements.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ---------------------------------------------------------------------------
+// Org
+// ---------------------------------------------------------------------------
+
+model Organization {
+  id        String   @id @default(cuid())
+  name      String
+  createdAt DateTime @default(now())
+
+  users          User[]
+  orgMemberships OrgMembership[]
+  roles          Role[]
+  films          Film[]
+
+  @@map("organization")
+}
+
+enum UserStatus {
+  ACTIVE
+  INACTIVE
+}
+
+model User {
+  id           String     @id @default(cuid())
+  orgId        String
+  org          Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  email        String     @unique
+  passwordHash String
+  name         String
+  phone        String?
+  status       UserStatus @default(ACTIVE)
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+
+  orgMemberships  OrgMembership[]
+  filmAssignments FilmAssignment[]
+
+  @@map("user")
+}
+
+enum OrgRole {
+  OWNER
+  ADMIN
+  MEMBER
+}
+
+// Org-level power: create films, manage the role catalog, manage the
+// role_permission grid. Independent of any single film.
+model OrgMembership {
+  id        String   @id @default(cuid())
+  orgId     String
+  org       Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  orgRole   OrgRole
+  createdAt DateTime @default(now())
+
+  @@unique([orgId, userId])
+  @@map("org_membership")
+}
+
+// ---------------------------------------------------------------------------
+// Role catalog + permission grid
+// ---------------------------------------------------------------------------
+
+// Org-scoped, user-editable catalog of role types ("1st AD", "Location
+// Manager", ...). Not hardcoded — a company will have idiosyncratic titles.
+model Role {
+  id          String   @id @default(cuid())
+  orgId       String
+  org         Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  key         String
+  label       String
+  description String?
+  createdAt   DateTime @default(now())
+
+  permissions     RolePermission[]
+  fieldAccess     RoleFieldAccess[]
+  filmAssignments FilmAssignment[]
+
+  @@unique([orgId, key])
+  @@map("role")
+}
+
+// role -> module -> capability. `capability` is a free string, not a fixed
+// enum, so a module can add a new action (e.g. "dispatch") without a
+// migration. A `view` capability on a module is what makes it appear in
+// that role's nav rail.
+model RolePermission {
+  id         String   @id @default(cuid())
+  roleId     String
+  role       Role     @relation(fields: [roleId], references: [id], onDelete: Cascade)
+  moduleKey  String
+  capability String
+  createdAt  DateTime @default(now())
+
+  @@unique([roleId, moduleKey, capability])
+  @@map("role_permission")
+}
+
+// Generic field-level visibility grant, keyed to a tag on the sensitive
+// column rather than one row per field. First consumer will be the People
+// registry's contact fields; same mechanism covers LocationBank's owner
+// contact/rate fields later without a bespoke visibility system per module.
+enum FieldGroup {
+  CONTACT_RESTRICTED
+  RATE_RESTRICTED
+}
+
+model RoleFieldAccess {
+  id         String     @id @default(cuid())
+  roleId     String
+  role       Role       @relation(fields: [roleId], references: [id], onDelete: Cascade)
+  fieldGroup FieldGroup
+  canView    Boolean    @default(false)
+  createdAt  DateTime   @default(now())
+
+  @@unique([roleId, fieldGroup])
+  @@map("role_field_access")
+}
+
+// ---------------------------------------------------------------------------
+// Film (minimal stub — see file header)
+// ---------------------------------------------------------------------------
+
+enum FilmStatus {
+  PREP
+  SHOOT
+  POST
+  WRAPPED
+  ARCHIVED
+}
+
+model Film {
+  id              String     @id @default(cuid())
+  orgId           String
+  org             Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  title           String
+  workingTitle    String?
+  status          FilmStatus @default(PREP)
+  startDate       DateTime?
+  endDate         DateTime?
+  primaryLanguage String?
+  createdAt       DateTime   @default(now())
+  updatedAt       DateTime   @updatedAt
+
+  filmAssignments FilmAssignment[]
+
+  @@map("film")
+}
+
+// ---------------------------------------------------------------------------
+// Film assignment — binds a logged-in user to a film with a role.
+// This is what RBAC actually reads at request time.
+// ---------------------------------------------------------------------------
+
+enum AssignmentStatus {
+  ACTIVE
+  INACTIVE
+}
+
+model FilmAssignment {
+  id         String           @id @default(cuid())
+  filmId     String
+  film       Film             @relation(fields: [filmId], references: [id], onDelete: Cascade)
+  userId     String
+  user       User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  roleId     String
+  role       Role             @relation(fields: [roleId], references: [id])
+  department String?
+  status     AssignmentStatus @default(ACTIVE)
+  startDate  DateTime?
+  endDate    DateTime?
+  createdAt  DateTime         @default(now())
+
+  @@unique([filmId, userId, roleId])
+  @@map("film_assignment")
+}

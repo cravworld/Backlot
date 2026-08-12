@@ -1,0 +1,779 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Backlot — Design System</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@500;600;700;800&family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&family=IBM+Plex+Mono:wght@400;500;600&family=Noto+Sans+Malayalam:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+
+  :root {
+    --ink: #191D22;
+    --ink-soft: #4A5058;
+    --paper: #F2F0E9;
+    --paper-raised: #FBFAF6;
+    --line: #DAD6C9;
+    --slate: #E4E1D6;
+
+    --verdigris: #1E6E60;
+    --verdigris-ink: #16554A;
+    --ochre: #B8842E;
+    --clay: #A8452F;
+    --sky: #3C6E92;
+
+    --radius-sm: 4px;
+    --radius-md: 8px;
+    --shadow-card: 0 1px 2px rgba(25,29,34,0.06), 0 1px 1px rgba(25,29,34,0.04);
+
+    --font-display: 'Big Shoulders Display', sans-serif;
+    --font-body: 'IBM Plex Sans', sans-serif;
+    --font-mal: 'Noto Sans Malayalam', sans-serif;
+    --font-mono: 'IBM Plex Mono', monospace;
+  }
+
+  html[data-theme="night"] {
+    --ink: #EDEAE0;
+    --ink-soft: #A8ADB4;
+    --paper: #14171B;
+    --paper-raised: #1B1F24;
+    --line: #2B2F34;
+    --slate: #20242A;
+
+    --verdigris: #3FAF9A;
+    --verdigris-ink: #8FE0CD;
+    --ochre: #D9A24B;
+    --clay: #D2694F;
+    --sky: #6FA6C9;
+
+    --shadow-card: 0 1px 2px rgba(0,0,0,0.4), 0 2px 8px rgba(0,0,0,0.3);
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    background: var(--paper);
+    color: var(--ink);
+    font-family: var(--font-body);
+    -webkit-font-smoothing: antialiased;
+    transition: background 0.25s ease, color 0.25s ease;
+  }
+
+  .wrap {
+    max-width: 1180px;
+    margin: 0 auto;
+    padding: 48px 32px 120px;
+  }
+
+  /* ===== Top bar ===== */
+  .topbar {
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 16px 32px;
+    background: var(--paper);
+    border-bottom: 1px solid var(--line);
+    backdrop-filter: blur(6px);
+  }
+  .brand {
+    display: flex;
+    align-items: baseline;
+    gap: 10px;
+  }
+  .brand-mark {
+    width: 22px; height: 22px;
+    border-radius: 3px;
+    background: linear-gradient(135deg, var(--verdigris) 0 50%, var(--ochre) 50% 100%);
+    flex-shrink: 0;
+  }
+  .brand-name {
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: 22px;
+    letter-spacing: 0.01em;
+  }
+  .theme-toggle {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-family: var(--font-mono);
+    font-size: 12px;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--ink-soft);
+  }
+  .toggle-btn {
+    display: flex;
+    border: 1px solid var(--line);
+    border-radius: 100px;
+    padding: 3px;
+    background: var(--paper-raised);
+  }
+  .toggle-btn button {
+    border: none;
+    background: transparent;
+    font-family: var(--font-mono);
+    font-size: 12px;
+    letter-spacing: 0.04em;
+    padding: 6px 14px;
+    border-radius: 100px;
+    cursor: pointer;
+    color: var(--ink-soft);
+  }
+  .toggle-btn button.active {
+    background: var(--ink);
+    color: var(--paper);
+  }
+
+  /* ===== Section scaffolding ===== */
+  section { margin-top: 88px; }
+  section:first-of-type { margin-top: 56px; }
+
+  .eyebrow {
+    font-family: var(--font-mono);
+    font-size: 12px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--verdigris);
+    margin-bottom: 10px;
+  }
+  h2.section-title {
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: clamp(32px, 4vw, 44px);
+    letter-spacing: 0.005em;
+    margin: 0 0 8px;
+    text-transform: uppercase;
+  }
+  .section-note {
+    font-size: 15px;
+    color: var(--ink-soft);
+    max-width: 640px;
+    line-height: 1.55;
+    margin-bottom: 36px;
+  }
+
+  /* ===== Hero ===== */
+  .hero {
+    display: grid;
+    grid-template-columns: 1.1fr 0.9fr;
+    gap: 48px;
+    align-items: center;
+    padding-bottom: 40px;
+    border-bottom: 1px solid var(--line);
+  }
+  .hero-eyebrow {
+    font-family: var(--font-mono);
+    font-size: 13px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--ink-soft);
+    margin-bottom: 18px;
+  }
+  .hero h1 {
+    font-family: var(--font-display);
+    font-weight: 800;
+    font-size: clamp(48px, 6.5vw, 84px);
+    line-height: 0.92;
+    text-transform: uppercase;
+    margin: 0 0 20px;
+    letter-spacing: 0.005em;
+  }
+  .hero h1 span { color: var(--verdigris); }
+  .hero p.lede {
+    font-size: 17px;
+    line-height: 1.6;
+    color: var(--ink-soft);
+    max-width: 480px;
+  }
+  .slate-card {
+    background: var(--paper-raised);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-card);
+    padding: 22px 22px 18px;
+    font-family: var(--font-mono);
+  }
+  .slate-card .slate-row {
+    display: flex;
+    justify-content: space-between;
+    font-size: 12px;
+    padding: 8px 0;
+    border-bottom: 1px dashed var(--line);
+  }
+  .slate-card .slate-row:last-child { border-bottom: none; }
+  .slate-card .slate-row .k { color: var(--ink-soft); letter-spacing: 0.06em; text-transform: uppercase; }
+  .slate-card .slate-row .v { color: var(--ink); font-weight: 500; }
+
+  /* ===== Palette ===== */
+  .palette-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: 16px;
+  }
+  .swatch {
+    border-radius: var(--radius-md);
+    overflow: hidden;
+    border: 1px solid var(--line);
+    background: var(--paper-raised);
+  }
+  .swatch-color { height: 92px; }
+  .swatch-meta { padding: 12px 14px 14px; }
+  .swatch-name { font-weight: 600; font-size: 14px; margin-bottom: 2px; }
+  .swatch-hex { font-family: var(--font-mono); font-size: 12px; color: var(--ink-soft); }
+  .swatch-use { font-size: 12px; color: var(--ink-soft); margin-top: 6px; line-height: 1.4; }
+
+  /* ===== Type specimen ===== */
+  .type-block { margin-bottom: 40px; padding-bottom: 40px; border-bottom: 1px solid var(--line); }
+  .type-block:last-child { border-bottom: none; }
+  .type-label {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--verdigris);
+    margin-bottom: 12px;
+  }
+  .type-sample-display {
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: 46px;
+    text-transform: uppercase;
+    letter-spacing: 0.01em;
+    line-height: 1.05;
+  }
+  .type-sample-body {
+    font-family: var(--font-body);
+    font-size: 17px;
+    line-height: 1.6;
+    max-width: 620px;
+  }
+  .type-sample-mal {
+    font-family: var(--font-mal);
+    font-size: 18px;
+    line-height: 1.75;
+    max-width: 620px;
+  }
+  .type-sample-mono {
+    font-family: var(--font-mono);
+    font-size: 15px;
+    letter-spacing: 0.01em;
+  }
+  .type-meta { font-size: 13px; color: var(--ink-soft); margin-top: 10px; }
+
+  /* ===== Stripboard signature ===== */
+  .strip-list { display: flex; flex-direction: column; gap: 10px; }
+  .strip {
+    display: flex;
+    align-items: stretch;
+    background: var(--paper-raised);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-sm);
+    overflow: hidden;
+    box-shadow: var(--shadow-card);
+  }
+  .strip-spine { width: 6px; flex-shrink: 0; }
+  .strip-spine.confirmed { background: var(--verdigris); }
+  .strip-spine.pending { background: var(--ochre); }
+  .strip-spine.risk { background: var(--clay); }
+  .strip-spine.info { background: var(--sky); }
+  .strip-body {
+    flex: 1;
+    display: grid;
+    grid-template-columns: 90px 1fr auto;
+    align-items: center;
+    gap: 18px;
+    padding: 14px 18px;
+  }
+  .strip-num {
+    font-family: var(--font-mono);
+    font-size: 13px;
+    color: var(--ink-soft);
+  }
+  .strip-main .strip-title { font-weight: 600; font-size: 14.5px; margin-bottom: 2px; }
+  .strip-main .strip-sub { font-size: 12.5px; color: var(--ink-soft); }
+  .strip-status {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    padding: 5px 10px;
+    border-radius: 100px;
+    white-space: nowrap;
+  }
+  .strip-status.confirmed { background: color-mix(in srgb, var(--verdigris) 16%, transparent); color: var(--verdigris); }
+  .strip-status.pending { background: color-mix(in srgb, var(--ochre) 18%, transparent); color: var(--ochre); }
+  .strip-status.risk { background: color-mix(in srgb, var(--clay) 18%, transparent); color: var(--clay); }
+  .strip-status.info { background: color-mix(in srgb, var(--sky) 18%, transparent); color: var(--sky); }
+
+  .strip-key {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 18px;
+    margin-top: 24px;
+    font-size: 12.5px;
+    color: var(--ink-soft);
+  }
+  .strip-key span { display: inline-flex; align-items: center; gap: 7px; }
+  .key-dot { width: 9px; height: 9px; border-radius: 2px; display: inline-block; }
+
+  /* ===== Buttons ===== */
+  .row { display: flex; flex-wrap: wrap; gap: 14px; align-items: center; }
+  .btn {
+    font-family: var(--font-body);
+    font-weight: 600;
+    font-size: 14px;
+    padding: 11px 20px;
+    border-radius: var(--radius-sm);
+    border: 1px solid transparent;
+    cursor: pointer;
+    transition: transform 0.12s ease, box-shadow 0.12s ease, background 0.15s ease;
+  }
+  .btn:active { transform: translateY(1px); }
+  .btn-primary { background: var(--verdigris); color: var(--paper-raised); }
+  .btn-primary:hover { background: var(--verdigris-ink); }
+  .btn-secondary { background: transparent; color: var(--ink); border-color: var(--line); }
+  .btn-secondary:hover { border-color: var(--ink-soft); }
+  .btn-ghost { background: transparent; color: var(--ink-soft); }
+  .btn-ghost:hover { color: var(--ink); }
+  .btn-danger { background: transparent; color: var(--clay); border-color: color-mix(in srgb, var(--clay) 40%, transparent); }
+  .btn-danger:hover { background: color-mix(in srgb, var(--clay) 10%, transparent); }
+  .btn:focus-visible { outline: 2px solid var(--sky); outline-offset: 2px; }
+
+  /* ===== Badges ===== */
+  .badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-family: var(--font-mono);
+    font-size: 11px;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    padding: 4px 10px;
+    border-radius: 100px;
+    border: 1px solid var(--line);
+  }
+  .badge-dot { width: 6px; height: 6px; border-radius: 50%; }
+
+  /* ===== Table ===== */
+  table.data-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13.5px;
+  }
+  .data-table thead th {
+    text-align: left;
+    font-family: var(--font-mono);
+    font-size: 11px;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--ink-soft);
+    padding: 10px 14px;
+    border-bottom: 1px solid var(--line);
+  }
+  .data-table tbody td {
+    padding: 13px 14px;
+    border-bottom: 1px solid var(--line);
+    vertical-align: middle;
+  }
+  .data-table tbody tr:hover { background: var(--slate); }
+  .num { font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
+
+  /* ===== Nav rail mock ===== */
+  .rail-mock {
+    display: grid;
+    grid-template-columns: 220px 1fr;
+    border: 1px solid var(--line);
+    border-radius: var(--radius-md);
+    overflow: hidden;
+    box-shadow: var(--shadow-card);
+    min-height: 340px;
+  }
+  .rail {
+    background: var(--paper-raised);
+    border-right: 1px solid var(--line);
+    padding: 18px 0;
+  }
+  .rail-item {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    padding: 12px 20px 12px 24px;
+    font-size: 13.5px;
+    font-weight: 500;
+    color: var(--ink-soft);
+    cursor: pointer;
+    border-left: 3px solid transparent;
+  }
+  .rail-item .rail-sub { font-family: var(--font-mono); font-size: 10.5px; color: var(--ink-soft); opacity: 0.7; margin-top: 1px; text-transform: uppercase; letter-spacing: 0.05em;}
+  .rail-item.active {
+    color: var(--ink);
+    border-left-color: var(--verdigris);
+    background: var(--slate);
+  }
+  .rail-content {
+    background: var(--paper);
+    padding: 28px;
+  }
+  .rail-content .rc-title { font-family: var(--font-display); font-size: 26px; font-weight: 700; text-transform: uppercase; margin-bottom: 6px; }
+  .rail-content .rc-note { font-size: 13px; color: var(--ink-soft); margin-bottom: 20px; }
+
+  /* ===== Motion sample ===== */
+  .stamp-demo {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    background: var(--paper-raised);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-md);
+    padding: 20px 24px;
+  }
+  .stamp-circle {
+    width: 44px; height: 44px;
+    border-radius: 50%;
+    border: 2px solid var(--verdigris);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--verdigris);
+    font-size: 20px;
+    font-weight: 700;
+    flex-shrink: 0;
+    animation: stamp-in 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
+  @keyframes stamp-in {
+    0% { transform: scale(1.8) rotate(-8deg); opacity: 0; }
+    100% { transform: scale(1) rotate(0deg); opacity: 1; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .stamp-circle { animation: none; }
+  }
+
+  /* ===== Footer note ===== */
+  .footnote {
+    margin-top: 100px;
+    padding-top: 24px;
+    border-top: 1px solid var(--line);
+    font-size: 13px;
+    color: var(--ink-soft);
+    font-family: var(--font-mono);
+  }
+
+  @media (max-width: 860px) {
+    .hero { grid-template-columns: 1fr; }
+    .rail-mock { grid-template-columns: 1fr; }
+    .rail { display: flex; overflow-x: auto; border-right: none; border-bottom: 1px solid var(--line); }
+    .strip-body { grid-template-columns: 60px 1fr auto; gap: 10px; padding: 12px; }
+  }
+</style>
+</head>
+<body>
+
+  <div class="topbar">
+    <div class="brand">
+      <div class="brand-mark"></div>
+      <div class="brand-name">BACKLOT</div>
+    </div>
+    <div class="theme-toggle">
+      Shoot mode
+      <div class="toggle-btn">
+        <button id="btn-day" class="active" onclick="setTheme('day')">Day</button>
+        <button id="btn-night" onclick="setTheme('night')">Night</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="wrap">
+
+    <!-- HERO -->
+    <section class="hero">
+      <div>
+        <div class="hero-eyebrow">Design system — v1</div>
+        <h1>The unit's<br>single<br><span>call sheet.</span></h1>
+        <p class="lede">A working system for a working set. Built to stay legible under fluorescent office light, monsoon glare, and a phone screen at a 4am call — and to look like nothing you've templated before.</p>
+      </div>
+      <div class="slate-card">
+        <div class="slate-row"><span class="k">Production</span><span class="v">Backlot v1.0</span></div>
+        <div class="slate-row"><span class="k">Scene</span><span class="v">TOKENS — 01</span></div>
+        <div class="slate-row"><span class="k">Take</span><span class="v">01</span></div>
+        <div class="slate-row"><span class="k">Date</span><span class="v" id="slate-date">—</span></div>
+        <div class="slate-row"><span class="k">Mode</span><span class="v" id="slate-mode">Day</span></div>
+      </div>
+    </section>
+
+    <!-- PALETTE -->
+    <section>
+      <div class="eyebrow">01 · Color</div>
+      <h2 class="section-title">Palette</h2>
+      <p class="section-note">Cool paper instead of coffee-shop cream, ink instead of pure black, and a working four-color status system borrowed from the stripboard rather than a decorative accent. Every color here does a job somewhere in the product.</p>
+      <div class="palette-grid">
+        <div class="swatch">
+          <div class="swatch-color" style="background:var(--ink);"></div>
+          <div class="swatch-meta">
+            <div class="swatch-name">Ink</div>
+            <div class="swatch-hex">#191D22</div>
+            <div class="swatch-use">Primary text, headers, nav</div>
+          </div>
+        </div>
+        <div class="swatch">
+          <div class="swatch-color" style="background:var(--paper); border-bottom:1px solid var(--line);"></div>
+          <div class="swatch-meta">
+            <div class="swatch-name">Paper</div>
+            <div class="swatch-hex">#F2F0E9</div>
+            <div class="swatch-use">App background</div>
+          </div>
+        </div>
+        <div class="swatch">
+          <div class="swatch-color" style="background:var(--slate);"></div>
+          <div class="swatch-meta">
+            <div class="swatch-name">Slate</div>
+            <div class="swatch-hex">#E4E1D6</div>
+            <div class="swatch-use">Secondary surface, hover</div>
+          </div>
+        </div>
+        <div class="swatch">
+          <div class="swatch-color" style="background:var(--verdigris);"></div>
+          <div class="swatch-meta">
+            <div class="swatch-name">Verdigris</div>
+            <div class="swatch-hex">#1E6E60</div>
+            <div class="swatch-use">Brand, primary action, confirmed</div>
+          </div>
+        </div>
+        <div class="swatch">
+          <div class="swatch-color" style="background:var(--ochre);"></div>
+          <div class="swatch-meta">
+            <div class="swatch-name">Ochre</div>
+            <div class="swatch-hex">#B8842E</div>
+            <div class="swatch-use">Pending, needs attention</div>
+          </div>
+        </div>
+        <div class="swatch">
+          <div class="swatch-color" style="background:var(--clay);"></div>
+          <div class="swatch-meta">
+            <div class="swatch-name">Clay</div>
+            <div class="swatch-hex">#A8452F</div>
+            <div class="swatch-use">At risk, overdue, destructive</div>
+          </div>
+        </div>
+        <div class="swatch">
+          <div class="swatch-color" style="background:var(--sky);"></div>
+          <div class="swatch-meta">
+            <div class="swatch-name">Sky</div>
+            <div class="swatch-hex">#3C6E92</div>
+            <div class="swatch-use">Informational, scheduled</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- TYPE -->
+    <section>
+      <div class="eyebrow">02 · Type</div>
+      <h2 class="section-title">Type system</h2>
+      <p class="section-note">Four roles, each earning its place: a condensed industrial display face for module and section headers, a humanist sans for reading, a matched Malayalam face for bilingual fields, and a mono face wherever a number means something — scene counts, timecodes, dates.</p>
+
+      <div class="type-block">
+        <div class="type-label">Display — Big Shoulders Display · 700</div>
+        <div class="type-sample-display">Scene 47 — EXT Backwater</div>
+        <div class="type-meta">Module titles, hero statements, section headers. Used sparingly — never for body copy.</div>
+      </div>
+
+      <div class="type-block">
+        <div class="type-label">Body — IBM Plex Sans · 400 / 600</div>
+        <div class="type-sample-body">Call sheet for Unit 1 has been sent to 34 recipients. <strong>28 acknowledged</strong>, 6 pending. The 1st AD flagged a location change for scene 52, effective from tomorrow's revised call.</div>
+        <div class="type-meta">Interface text, descriptions, table content, everywhere a person reads at length.</div>
+      </div>
+
+      <div class="type-block">
+        <div class="type-label">Malayalam — Noto Sans Malayalam · 400 / 600</div>
+        <div class="type-sample-mal">നാളത്തെ കോൾ ഷീറ്റ് അയച്ചു കഴിഞ്ഞു. യൂണിറ്റ് കോൾ രാവിലെ 6:30ന്. ലൊക്കേഷൻ: കുമരകം.</div>
+        <div class="type-meta">Bilingual fields on call sheets and DPRs. Paired to sit at the same optical size and weight as the body face.</div>
+      </div>
+
+      <div class="type-block">
+        <div class="type-label">Mono — IBM Plex Mono · 400 / 500</div>
+        <div class="type-sample-mono">SCENE 47 · PAGE 2⅜ · CALL 06:30 · TC 01:12:04:18 · 12 AUG 2026</div>
+        <div class="type-meta">Scene numbers, page-eighths, timecodes, dates, IDs — anything counted or measured.</div>
+      </div>
+    </section>
+
+    <!-- SIGNATURE: STRIPBOARD -->
+    <section>
+      <div class="eyebrow">03 · Signature</div>
+      <h2 class="section-title">The strip</h2>
+      <p class="section-note">Traditional stripboard scheduling color-codes each scene on a paper strip so the whole day is scannable at a glance. Every card and row in Backlot carries that same colored spine — and the color always means the same thing, wherever it appears: call sheets, permits, rights obligations, dispatch queues.</p>
+
+      <div class="strip-list">
+        <div class="strip">
+          <div class="strip-spine confirmed"></div>
+          <div class="strip-body">
+            <div class="strip-num">SC. 047</div>
+            <div class="strip-main">
+              <div class="strip-title">Kumarakom houseboat — EXT/DAY</div>
+              <div class="strip-sub">Call sheet dispatched · 34 recipients</div>
+            </div>
+            <div class="strip-status confirmed">Confirmed</div>
+          </div>
+        </div>
+        <div class="strip">
+          <div class="strip-spine pending"></div>
+          <div class="strip-body">
+            <div class="strip-num">PMT. 012</div>
+            <div class="strip-main">
+              <div class="strip-title">Devaswom board — temple courtyard access</div>
+              <div class="strip-sub">Apply-by 18 Aug · lead time 14 days</div>
+            </div>
+            <div class="strip-status pending">Pending</div>
+          </div>
+        </div>
+        <div class="strip">
+          <div class="strip-spine risk"></div>
+          <div class="strip-body">
+            <div class="strip-num">RTS. 003</div>
+            <div class="strip-main">
+              <div class="strip-title">OTT holdback — satellite window overlap</div>
+              <div class="strip-sub">Conflict detected · review required</div>
+            </div>
+            <div class="strip-status risk">At risk</div>
+          </div>
+        </div>
+        <div class="strip">
+          <div class="strip-spine info"></div>
+          <div class="strip-body">
+            <div class="strip-num">SC. 052</div>
+            <div class="strip-main">
+              <div class="strip-title">Fort Kochi street — EXT/NIGHT</div>
+              <div class="strip-sub">Scheduled for day 14 · unconfirmed cast</div>
+            </div>
+            <div class="strip-status info">Scheduled</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="strip-key">
+        <span><span class="key-dot" style="background:var(--verdigris)"></span>Confirmed / on track</span>
+        <span><span class="key-dot" style="background:var(--ochre)"></span>Pending / needs action</span>
+        <span><span class="key-dot" style="background:var(--clay)"></span>At risk / overdue</span>
+        <span><span class="key-dot" style="background:var(--sky)"></span>Informational / scheduled</span>
+      </div>
+    </section>
+
+    <!-- COMPONENTS -->
+    <section>
+      <div class="eyebrow">04 · Components</div>
+      <h2 class="section-title">Core elements</h2>
+      <p class="section-note">Restrained, deliberate, built to a quality floor: visible focus states, no motion beyond what's earned, and every action named for what it does.</p>
+
+      <div style="display:flex; flex-direction:column; gap:36px;">
+        <div>
+          <div class="type-label">Buttons</div>
+          <div class="row">
+            <button class="btn btn-primary">Send call sheet</button>
+            <button class="btn btn-secondary">Save draft</button>
+            <button class="btn btn-ghost">Cancel</button>
+            <button class="btn btn-danger">Delete permit</button>
+          </div>
+        </div>
+
+        <div>
+          <div class="type-label">Badges</div>
+          <div class="row">
+            <span class="badge"><span class="badge-dot" style="background:var(--verdigris)"></span>Confirmed</span>
+            <span class="badge"><span class="badge-dot" style="background:var(--ochre)"></span>Pending</span>
+            <span class="badge"><span class="badge-dot" style="background:var(--clay)"></span>At risk</span>
+            <span class="badge"><span class="badge-dot" style="background:var(--sky)"></span>Scheduled</span>
+          </div>
+        </div>
+
+        <div>
+          <div class="type-label">Data table</div>
+          <table class="data-table">
+            <thead>
+              <tr><th>Scene</th><th>Location</th><th>Elements</th><th>Pages</th><th>Status</th></tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td class="num">047</td>
+                <td>Kumarakom houseboat</td>
+                <td>Cast · 4, Props · 6</td>
+                <td class="num">2⅜</td>
+                <td><span class="badge"><span class="badge-dot" style="background:var(--verdigris)"></span>Locked</span></td>
+              </tr>
+              <tr>
+                <td class="num">048</td>
+                <td>Kumarakom houseboat</td>
+                <td>Cast · 2, Props · 3</td>
+                <td class="num">1⅛</td>
+                <td><span class="badge"><span class="badge-dot" style="background:var(--ochre)"></span>Review</span></td>
+              </tr>
+              <tr>
+                <td class="num">052</td>
+                <td>Fort Kochi street</td>
+                <td>Cast · 8, JA · 40</td>
+                <td class="num">3½</td>
+                <td><span class="badge"><span class="badge-dot" style="background:var(--sky)"></span>Scheduled</span></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div>
+          <div class="type-label">Motion — earned, not decorative</div>
+          <div class="stamp-demo">
+            <div class="stamp-circle">✓</div>
+            <div>
+              <div style="font-weight:600; font-size:14px;">Call sheet acknowledged</div>
+              <div style="font-size:12.5px; color:var(--ink-soft);">A single, satisfying confirmation — reminiscent of a stamp, not a spinner. Respects reduced-motion preference.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- LAYOUT -->
+    <section>
+      <div class="eyebrow">05 · Layout</div>
+      <h2 class="section-title">Module rail</h2>
+      <p class="section-note">A binder-tab rail rather than a generic sidebar — each module gets a role-filtered tab, active state marked with the same spine treatment as the strips above.</p>
+
+      <div class="rail-mock">
+        <div class="rail">
+          <div class="rail-item active">Call Sheet Ops<span class="rail-sub">Today · Day 14</span></div>
+          <div class="rail-item">SceneSpine<span class="rail-sub">Breakdown</span></div>
+          <div class="rail-item">LocationBank<span class="rail-sub">Search</span></div>
+          <div class="rail-item">PermitTrack<span class="rail-sub">3 pending</span></div>
+          <div class="rail-item">RightsLedger<span class="rail-sub">Restricted</span></div>
+        </div>
+        <div class="rail-content">
+          <div class="rc-title">Day 14 — Kumarakom</div>
+          <div class="rc-note">Unit call 06:30 · Scenes 47, 48 · Weather: clear, 60% by afternoon</div>
+          <div class="row">
+            <button class="btn btn-primary">Publish call sheet</button>
+            <button class="btn btn-secondary">Edit day</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <div class="footnote">
+      Backlot design tokens · v1.0 · Toggle "Night" above — same tokens, tuned contrast, no separate design language.
+    </div>
+
+  </div>
+
+<script>
+  function setTheme(mode) {
+    document.documentElement.setAttribute('data-theme', mode === 'night' ? 'night' : 'day');
+    document.getElementById('btn-day').classList.toggle('active', mode === 'day');
+    document.getElementById('btn-night').classList.toggle('active', mode === 'night');
+    document.getElementById('slate-mode').textContent = mode === 'night' ? 'Night' : 'Day';
+  }
+  document.getElementById('slate-date').textContent = new Date().toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' });
+</script>
+
+</body>
+</html>

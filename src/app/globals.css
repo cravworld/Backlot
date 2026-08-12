@@ -1,0 +1,78 @@
+/* Backlot design tokens — copied verbatim from backlot-style-guide.html.
+   Do not hand-edit a value here without updating the reference file too. */
+
+:root {
+  --ink: #191d22;
+  --ink-soft: #4a5058;
+  --paper: #f2f0e9;
+  --paper-raised: #fbfaf6;
+  --line: #dad6c9;
+  --slate: #e4e1d6;
+
+  --verdigris: #1e6e60;
+  --verdigris-ink: #16554a;
+  --ochre: #b8842e;
+  --clay: #a8452f;
+  --sky: #3c6e92;
+
+  --radius-sm: 4px;
+  --radius-md: 8px;
+  --shadow-card: 0 1px 2px rgba(25, 29, 34, 0.06), 0 1px 1px rgba(25, 29, 34, 0.04);
+
+  --font-display: "Big Shoulders Display", sans-serif;
+  --font-body: "IBM Plex Sans", sans-serif;
+  --font-mal: "Noto Sans Malayalam", sans-serif;
+  --font-mono: "IBM Plex Mono", monospace;
+}
+
+[data-theme="night"] {
+  --ink: #edeae0;
+  --ink-soft: #a8adb4;
+  --paper: #14171b;
+  --paper-raised: #1b1f24;
+  --line: #2b2f34;
+  --slate: #20242a;
+
+  --verdigris: #3faf9a;
+  --verdigris-ink: #8fe0cd;
+  --ochre: #d9a24b;
+  --clay: #d2694f;
+  --sky: #6fa6c9;
+
+  --shadow-card: 0 1px 2px rgba(0, 0, 0, 0.4), 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  padding: 0;
+  margin: 0;
+}
+
+body {
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--font-body);
+  -webkit-font-smoothing: antialiased;
+  transition: background 0.25s ease, color 0.25s ease;
+}
+
+a {
+  color: inherit;
+}
+
+:focus-visible {
+  outline: 2px solid var(--sky);
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
