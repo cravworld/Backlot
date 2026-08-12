@@ -68,6 +68,9 @@ export default async function MePage({
                 <Link href="/people" className="text-sm text-verdigris hover:underline">
                   People
                 </Link>
+                <Link href="/audit" className="text-sm text-verdigris hover:underline">
+                  Audit log
+                </Link>
               </>
             )}
             <LogoutButton />

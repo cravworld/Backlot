@@ -4,6 +4,7 @@ import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { isOrgAdmin } from "@/lib/rbac";
 import { PageHeader } from "@/components/page-header";
+import { recordAuditEvent } from "@/lib/audit";
 import { updatePerson } from "../actions";
 
 export default async function PersonDetailPage({ params }: { params: { id: string } }) {
@@ -31,6 +32,18 @@ export default async function PersonDetailPage({ params }: { params: { id: strin
     },
   });
   if (!person) notFound();
+
+  // Sensitive read, per phase-0-findings.md open question 3: this page is
+  // the one place a person's full contact info is always rendered, so
+  // every view of it is logged — not every /people list render, which
+  // would be noise, but this detail page specifically.
+  await recordAuditEvent({
+    orgId: session.user.orgId,
+    actorUserId: session.user.id,
+    action: "view",
+    entityType: "person",
+    entityId: person.id,
+  });
 
   const boundUpdate = updatePerson.bind(null, person.id);
 

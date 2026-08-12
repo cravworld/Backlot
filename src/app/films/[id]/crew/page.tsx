@@ -4,6 +4,7 @@ import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { canViewFieldGroup, isOrgAdmin } from "@/lib/rbac";
 import { PageHeader } from "@/components/page-header";
+import { recordAuditEvent } from "@/lib/audit";
 import { createCrewRole, removeCrewRole } from "../../actions";
 
 export default async function FilmCrewPage({ params }: { params: { id: string } }) {
@@ -46,6 +47,23 @@ export default async function FilmCrewPage({ params }: { params: { id: string } 
     include: { person: true, role: true },
     orderBy: { createdAt: "asc" },
   });
+
+  // Sensitive read: contact fields for this film's crew were just
+  // rendered to this viewer. Logged once per page view, scoped to the
+  // film rather than one event per crew row — the compliance question is
+  // "who saw contact info for this film's crew, when," not a row-level
+  // audit of a list render.
+  if (canSeeContact && crew.length > 0) {
+    await recordAuditEvent({
+      orgId: session.user.orgId,
+      filmId: film.id,
+      actorUserId: session.user.id,
+      action: "view",
+      entityType: "film_crew_contact",
+      entityId: film.id,
+      after: { crewCount: crew.length },
+    });
+  }
 
   const [people, roles] = admin
     ? await Promise.all([

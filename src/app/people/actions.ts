@@ -6,6 +6,7 @@ import { revalidatePath } from "next/cache";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { isOrgAdmin } from "@/lib/rbac";
+import { recordAuditEvent } from "@/lib/audit";
 
 // Person CRUD is the master-data entry surface (per phase-0-findings.md
 // §1.3) — org-admin only, same reasoning as film creation: this is
@@ -48,6 +49,18 @@ export async function createPerson(formData: FormData) {
     },
   });
 
+  // Person rows carry contact fields (phone/email/whatsapp) from the
+  // moment they're created — the write audit here doubles as the record
+  // of who first entered that data, not just who changed it later.
+  await recordAuditEvent({
+    orgId: session.user.orgId,
+    actorUserId: session.user.id,
+    action: "create",
+    entityType: "person",
+    entityId: person.id,
+    after: person,
+  });
+
   revalidatePath("/people");
   redirect(`/people/${person.id}`);
 }
@@ -58,7 +71,11 @@ export async function updatePerson(personId: string, formData: FormData) {
   const fullName = String(formData.get("fullName") ?? "").trim();
   if (!fullName) throw new Error("Full name is required.");
 
-  await prisma.person.update({
+  const before = await prisma.person.findFirst({
+    where: { id: personId, orgId: session.user.orgId },
+  });
+
+  const after = await prisma.person.update({
     where: { id: personId, orgId: session.user.orgId },
     data: {
       fullName,
@@ -70,6 +87,16 @@ export async function updatePerson(personId: string, formData: FormData) {
       isMinor: formData.get("isMinor") === "on",
       notes: String(formData.get("notes") ?? "").trim() || null,
     },
+  });
+
+  await recordAuditEvent({
+    orgId: session.user.orgId,
+    actorUserId: session.user.id,
+    action: "update",
+    entityType: "person",
+    entityId: personId,
+    before,
+    after,
   });
 
   revalidatePath(`/people/${personId}`);

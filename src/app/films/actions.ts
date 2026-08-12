@@ -6,6 +6,7 @@ import { revalidatePath } from "next/cache";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { isOrgAdmin } from "@/lib/rbac";
+import { recordAuditEvent } from "@/lib/audit";
 
 // Film creation, editing, and staffing are org-level actions (per
 // phase-0-findings.md §2): who tells the crew this film exists and who's
@@ -51,6 +52,16 @@ export async function createFilm(formData: FormData) {
     },
   });
 
+  await recordAuditEvent({
+    orgId: session.user.orgId,
+    filmId: film.id,
+    actorUserId: session.user.id,
+    action: "create",
+    entityType: "film",
+    entityId: film.id,
+    after: film,
+  });
+
   revalidatePath("/films");
   redirect(`/films/${film.id}`);
 }
@@ -72,7 +83,9 @@ export async function updateFilm(filmId: string, formData: FormData) {
   const startDateRaw = String(formData.get("startDate") ?? "");
   const endDateRaw = String(formData.get("endDate") ?? "");
 
-  await prisma.film.update({
+  const before = await prisma.film.findFirst({ where: { id: filmId, orgId: session.user.orgId } });
+
+  const after = await prisma.film.update({
     where: { id: filmId, orgId: session.user.orgId },
     data: {
       title,
@@ -82,6 +95,17 @@ export async function updateFilm(filmId: string, formData: FormData) {
       startDate: startDateRaw ? new Date(startDateRaw) : null,
       endDate: endDateRaw ? new Date(endDateRaw) : null,
     },
+  });
+
+  await recordAuditEvent({
+    orgId: session.user.orgId,
+    filmId,
+    actorUserId: session.user.id,
+    action: "update",
+    entityType: "film",
+    entityId: filmId,
+    before,
+    after,
   });
 
   revalidatePath(`/films/${filmId}`);
@@ -106,10 +130,25 @@ export async function createAssignment(filmId: string, formData: FormData) {
   ]);
   if (!user || !role || !film) throw new Error("Invalid user, role, or film for this org.");
 
-  await prisma.filmAssignment.upsert({
+  const before = await prisma.filmAssignment.findUnique({
+    where: { filmId_userId_roleId: { filmId, userId, roleId } },
+  });
+
+  const after = await prisma.filmAssignment.upsert({
     where: { filmId_userId_roleId: { filmId, userId, roleId } },
     update: { status: "ACTIVE", department },
     create: { filmId, userId, roleId, department },
+  });
+
+  await recordAuditEvent({
+    orgId: session.user.orgId,
+    filmId,
+    actorUserId: session.user.id,
+    action: before ? "update" : "create",
+    entityType: "film_assignment",
+    entityId: after.id,
+    before,
+    after,
   });
 
   revalidatePath(`/films/${filmId}/assignments`);
@@ -140,10 +179,25 @@ export async function createCrewRole(filmId: string, formData: FormData) {
   ]);
   if (!person || !role || !film) throw new Error("Invalid person, role, or film for this org.");
 
-  await prisma.personFilmRole.upsert({
+  const before = await prisma.personFilmRole.findUnique({
+    where: { personId_filmId_roleId: { personId, filmId, roleId } },
+  });
+
+  const after = await prisma.personFilmRole.upsert({
     where: { personId_filmId_roleId: { personId, filmId, roleId } },
     update: { department, contactChannelPref, languagePref },
     create: { personId, filmId, roleId, department, contactChannelPref, languagePref },
+  });
+
+  await recordAuditEvent({
+    orgId: session.user.orgId,
+    filmId,
+    actorUserId: session.user.id,
+    action: before ? "update" : "create",
+    entityType: "person_film_role",
+    entityId: after.id,
+    before,
+    after,
   });
 
   revalidatePath(`/films/${filmId}/crew`);
@@ -152,9 +206,25 @@ export async function createCrewRole(filmId: string, formData: FormData) {
 export async function removeCrewRole(crewRoleId: string, filmId: string) {
   const session = await requireOrgAdminSession();
 
+  const before = await prisma.personFilmRole.findFirst({
+    where: { id: crewRoleId, film: { orgId: session.user.orgId } },
+  });
+
   await prisma.personFilmRole.deleteMany({
     where: { id: crewRoleId, film: { orgId: session.user.orgId } },
   });
+
+  if (before) {
+    await recordAuditEvent({
+      orgId: session.user.orgId,
+      filmId,
+      actorUserId: session.user.id,
+      action: "delete",
+      entityType: "person_film_role",
+      entityId: crewRoleId,
+      before,
+    });
+  }
 
   revalidatePath(`/films/${filmId}/crew`);
 }
@@ -166,10 +236,27 @@ export async function setAssignmentStatus(
 ) {
   const session = await requireOrgAdminSession();
 
+  const before = await prisma.filmAssignment.findFirst({
+    where: { id: assignmentId, film: { orgId: session.user.orgId } },
+  });
+
   await prisma.filmAssignment.updateMany({
     where: { id: assignmentId, film: { orgId: session.user.orgId } },
     data: { status },
   });
+
+  if (before) {
+    await recordAuditEvent({
+      orgId: session.user.orgId,
+      filmId,
+      actorUserId: session.user.id,
+      action: "update",
+      entityType: "film_assignment",
+      entityId: assignmentId,
+      before,
+      after: { ...before, status },
+    });
+  }
 
   revalidatePath(`/films/${filmId}/assignments`);
 }
