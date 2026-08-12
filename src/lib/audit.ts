@@ -53,3 +53,23 @@ function toJson(value: unknown): Prisma.InputJsonValue | undefined {
   if (value === undefined || value === null) return undefined;
   return JSON.parse(JSON.stringify(value));
 }
+
+/**
+ * Re-saving a form with nothing actually changed (a repeated click while
+ * waiting for a slow response, most commonly) shouldn't produce a new
+ * audit row — that's noise, not a change worth recording. Compares
+ * everything except id/orgId/createdAt/updatedAt, which are either
+ * identifiers or always-different bookkeeping fields. `before` being
+ * null/undefined (nothing existed yet) always counts as changed — this
+ * is only meant to catch true no-op re-saves of an existing record.
+ */
+export function isUnchanged(before: unknown, after: unknown): boolean {
+  if (before === null || before === undefined) return false;
+  const strip = (obj: unknown) => {
+    if (obj === null || typeof obj !== "object") return obj;
+    const { id: _id, orgId: _orgId, createdAt: _createdAt, updatedAt: _updatedAt, ...rest } =
+      obj as Record<string, unknown>;
+    return rest;
+  };
+  return JSON.stringify(strip(before)) === JSON.stringify(strip(after));
+}

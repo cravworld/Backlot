@@ -4,6 +4,7 @@ import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { isOrgAdmin } from "@/lib/rbac";
 import { PageHeader } from "@/components/page-header";
+import { SubmitButton } from "@/components/submit-button";
 import { createAssignment, setAssignmentStatus } from "../../actions";
 
 export default async function FilmAssignmentsPage({
@@ -99,12 +100,12 @@ export default async function FilmAssignmentsPage({
                           a.status === "ACTIVE" ? "INACTIVE" : "ACTIVE"
                         )}
                       >
-                        <button
-                          type="submit"
+                        <SubmitButton
+                          pendingText="Updating…"
                           className="text-sm text-verdigris hover:underline"
                         >
                           {a.status === "ACTIVE" ? "Deactivate" : "Reactivate"}
-                        </button>
+                        </SubmitButton>
                       </form>
                     </td>
                   </tr>
@@ -177,12 +178,12 @@ export default async function FilmAssignmentsPage({
                 management UI isn&apos;t built yet; roles currently come from seed data.)
               </p>
             )}
-            <button
-              type="submit"
+            <SubmitButton
+              pendingText="Adding…"
               className="mt-2 w-fit rounded-sm bg-verdigris px-5 py-2.5 text-sm font-semibold text-paper-raised transition-colors hover:bg-verdigris-ink"
             >
               Add to film
-            </button>
+            </SubmitButton>
           </form>
         </section>
       </div>

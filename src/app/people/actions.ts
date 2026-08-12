@@ -6,7 +6,7 @@ import { revalidatePath } from "next/cache";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { isOrgAdmin } from "@/lib/rbac";
-import { recordAuditEvent } from "@/lib/audit";
+import { recordAuditEvent, isUnchanged } from "@/lib/audit";
 
 // Person CRUD is the master-data entry surface (per phase-0-findings.md
 // §1.3) — org-admin only, same reasoning as film creation: this is
@@ -89,16 +89,19 @@ export async function updatePerson(personId: string, formData: FormData) {
     },
   });
 
-  await recordAuditEvent({
-    orgId: session.user.orgId,
-    actorUserId: session.user.id,
-    action: "update",
-    entityType: "person",
-    entityId: personId,
-    before,
-    after,
-  });
+  if (!isUnchanged(before, after)) {
+    await recordAuditEvent({
+      orgId: session.user.orgId,
+      actorUserId: session.user.id,
+      action: "update",
+      entityType: "person",
+      entityId: personId,
+      before,
+      after,
+    });
+  }
 
   revalidatePath(`/people/${personId}`);
   revalidatePath("/people");
+  redirect(`/people/${personId}?saved=1`);
 }

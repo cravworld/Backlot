@@ -6,9 +6,17 @@ import { prisma } from "@/lib/prisma";
 import { isOrgAdmin } from "@/lib/rbac";
 import { FilmStatusBadge } from "@/components/film-status-badge";
 import { PageHeader } from "@/components/page-header";
+import { SavedBanner } from "@/components/saved-banner";
+import { SubmitButton } from "@/components/submit-button";
 import { updateFilm } from "../actions";
 
-export default async function FilmDetailPage({ params }: { params: { id: string } }) {
+export default async function FilmDetailPage({
+  params,
+  searchParams,
+}: {
+  params: { id: string };
+  searchParams: { saved?: string };
+}) {
   const session = await getServerSession(authOptions);
   if (!session) redirect("/login");
 
@@ -76,6 +84,8 @@ export default async function FilmDetailPage({ params }: { params: { id: string 
           )}
         </div>
 
+        <SavedBanner show={searchParams.saved === "1"} label="Film saved." />
+
         {admin ? (
           <form
             action={boundUpdate}
@@ -125,12 +135,12 @@ export default async function FilmDetailPage({ params }: { params: { id: string 
               defaultValue={film.primaryLanguage ?? ""}
             />
 
-            <button
-              type="submit"
+            <SubmitButton
+              pendingText="Saving…"
               className="mt-2 w-fit rounded-sm bg-verdigris px-5 py-2.5 text-sm font-semibold text-paper-raised transition-colors hover:bg-verdigris-ink"
             >
               Save changes
-            </button>
+            </SubmitButton>
           </form>
         ) : (
           <div className="rounded-md border border-line bg-paper-raised p-5 shadow-card">

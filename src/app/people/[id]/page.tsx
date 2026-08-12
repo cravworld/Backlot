@@ -4,10 +4,18 @@ import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { isOrgAdmin } from "@/lib/rbac";
 import { PageHeader } from "@/components/page-header";
+import { SavedBanner } from "@/components/saved-banner";
+import { SubmitButton } from "@/components/submit-button";
 import { recordAuditEvent } from "@/lib/audit";
 import { updatePerson } from "../actions";
 
-export default async function PersonDetailPage({ params }: { params: { id: string } }) {
+export default async function PersonDetailPage({
+  params,
+  searchParams,
+}: {
+  params: { id: string };
+  searchParams: { saved?: string };
+}) {
   const session = await getServerSession(authOptions);
   if (!session) redirect("/login");
 
@@ -51,6 +59,8 @@ export default async function PersonDetailPage({ params }: { params: { id: strin
     <main className="min-h-screen bg-paper px-6 py-10 text-ink">
       <div className="mx-auto max-w-3xl">
         <PageHeader title={person.fullName} backHref="/people" backLabel="Back to people" />
+
+        <SavedBanner show={searchParams.saved === "1"} label="Person saved." />
 
         <form
           action={boundUpdate}
@@ -110,12 +120,12 @@ export default async function PersonDetailPage({ params }: { params: { id: strin
             </p>
           )}
 
-          <button
-            type="submit"
+          <SubmitButton
+            pendingText="Saving…"
             className="mt-2 w-fit rounded-sm bg-verdigris px-5 py-2.5 text-sm font-semibold text-paper-raised transition-colors hover:bg-verdigris-ink"
           >
             Save changes
-          </button>
+          </SubmitButton>
         </form>
 
         <section>

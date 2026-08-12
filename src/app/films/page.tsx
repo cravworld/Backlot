@@ -6,6 +6,7 @@ import { prisma } from "@/lib/prisma";
 import { isOrgAdmin } from "@/lib/rbac";
 import { FilmStatusBadge } from "@/components/film-status-badge";
 import { PageHeader } from "@/components/page-header";
+import { SubmitButton } from "@/components/submit-button";
 import { createFilm } from "./actions";
 
 export default async function FilmsPage() {
@@ -128,12 +129,12 @@ export default async function FilmsPage() {
             </div>
             <Field label="Primary language" name="primaryLanguage" placeholder="Malayalam" />
 
-            <button
-              type="submit"
+            <SubmitButton
+              pendingText="Creating…"
               className="mt-2 w-fit rounded-sm bg-verdigris px-5 py-2.5 text-sm font-semibold text-paper-raised transition-colors hover:bg-verdigris-ink"
             >
               Create film
-            </button>
+            </SubmitButton>
           </form>
         </section>
       </div>

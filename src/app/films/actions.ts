@@ -6,7 +6,7 @@ import { revalidatePath } from "next/cache";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { isOrgAdmin } from "@/lib/rbac";
-import { recordAuditEvent } from "@/lib/audit";
+import { recordAuditEvent, isUnchanged } from "@/lib/audit";
 
 // Film creation, editing, and staffing are org-level actions (per
 // phase-0-findings.md §2): who tells the crew this film exists and who's
@@ -97,19 +97,25 @@ export async function updateFilm(filmId: string, formData: FormData) {
     },
   });
 
-  await recordAuditEvent({
-    orgId: session.user.orgId,
-    filmId,
-    actorUserId: session.user.id,
-    action: "update",
-    entityType: "film",
-    entityId: filmId,
-    before,
-    after,
-  });
+  if (!isUnchanged(before, after)) {
+    await recordAuditEvent({
+      orgId: session.user.orgId,
+      filmId,
+      actorUserId: session.user.id,
+      action: "update",
+      entityType: "film",
+      entityId: filmId,
+      before,
+      after,
+    });
+  }
 
   revalidatePath(`/films/${filmId}`);
   revalidatePath("/films");
+  // Redirect even on a no-op save — the URL change is what makes "yes,
+  // that went through" visible, since the form otherwise looks identical
+  // before and after a successful save.
+  redirect(`/films/${filmId}?saved=1`);
 }
 
 export async function createAssignment(filmId: string, formData: FormData) {
@@ -140,16 +146,18 @@ export async function createAssignment(filmId: string, formData: FormData) {
     create: { filmId, userId, roleId, department },
   });
 
-  await recordAuditEvent({
-    orgId: session.user.orgId,
-    filmId,
-    actorUserId: session.user.id,
-    action: before ? "update" : "create",
-    entityType: "film_assignment",
-    entityId: after.id,
-    before,
-    after,
-  });
+  if (!before || !isUnchanged(before, after)) {
+    await recordAuditEvent({
+      orgId: session.user.orgId,
+      filmId,
+      actorUserId: session.user.id,
+      action: before ? "update" : "create",
+      entityType: "film_assignment",
+      entityId: after.id,
+      before,
+      after,
+    });
+  }
 
   revalidatePath(`/films/${filmId}/assignments`);
 }
@@ -189,16 +197,18 @@ export async function createCrewRole(filmId: string, formData: FormData) {
     create: { personId, filmId, roleId, department, contactChannelPref, languagePref },
   });
 
-  await recordAuditEvent({
-    orgId: session.user.orgId,
-    filmId,
-    actorUserId: session.user.id,
-    action: before ? "update" : "create",
-    entityType: "person_film_role",
-    entityId: after.id,
-    before,
-    after,
-  });
+  if (!before || !isUnchanged(before, after)) {
+    await recordAuditEvent({
+      orgId: session.user.orgId,
+      filmId,
+      actorUserId: session.user.id,
+      action: before ? "update" : "create",
+      entityType: "person_film_role",
+      entityId: after.id,
+      before,
+      after,
+    });
+  }
 
   revalidatePath(`/films/${filmId}/crew`);
 }
@@ -245,7 +255,7 @@ export async function setAssignmentStatus(
     data: { status },
   });
 
-  if (before) {
+  if (before && before.status !== status) {
     await recordAuditEvent({
       orgId: session.user.orgId,
       filmId,

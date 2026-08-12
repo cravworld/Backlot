@@ -4,6 +4,7 @@ import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { canViewFieldGroup, isOrgAdmin } from "@/lib/rbac";
 import { PageHeader } from "@/components/page-header";
+import { SubmitButton } from "@/components/submit-button";
 import { recordAuditEvent } from "@/lib/audit";
 import { createCrewRole, removeCrewRole } from "../../actions";
 
@@ -137,9 +138,9 @@ export default async function FilmCrewPage({ params }: { params: { id: string } 
                     {admin && (
                       <td className="py-2.5 text-right">
                         <form action={removeCrewRole.bind(null, c.id, film.id)}>
-                          <button type="submit" className="text-sm text-clay hover:underline">
+                          <SubmitButton pendingText="Removing…" className="text-sm text-clay hover:underline">
                             Remove
-                          </button>
+                          </SubmitButton>
                         </form>
                       </td>
                     )}
@@ -210,12 +211,12 @@ export default async function FilmCrewPage({ params }: { params: { id: string } 
                   first.
                 </p>
               )}
-              <button
-                type="submit"
+              <SubmitButton
+                pendingText="Adding…"
                 className="mt-2 w-fit rounded-sm bg-verdigris px-5 py-2.5 text-sm font-semibold text-paper-raised transition-colors hover:bg-verdigris-ink"
               >
                 Add to crew
-              </button>
+              </SubmitButton>
             </form>
           </section>
         )}
