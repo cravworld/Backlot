@@ -28,6 +28,13 @@
 //   sign-off open question 9 (opt-in only, not opt-out) is enforced here
 //   — this is the first component where Person.isMinor actually gates
 //   something.
+// Component 7 (OrchaLLM gateway stub): LlmProvider, LlmRequestLog. Per
+//   phase-0-findings.md §1.6 — no module ever calls an LLM provider
+//   directly, everything routes through lib/orchallm/gateway.ts, which
+//   refuses to route a sensitivity-tagged call to a non-zero-retention
+//   provider. LlmRequestLog never stores raw prompt/response text, only
+//   hashes — see lib/orchallm/gateway.ts for why that's enforced even on
+//   the Phase 0 test screen, not just the schema.
 //
 // See phase-0-findings.md section 1 for the model this implements.
 
@@ -59,6 +66,7 @@ model Organization {
   mediaAssets    MediaAsset[]
   notificationTemplates NotificationTemplate[]
   notificationMessages  NotificationMessage[]
+  llmRequestLogs        LlmRequestLog[]
 
   @@map("organization")
 }
@@ -88,6 +96,7 @@ model User {
   auditEvents     AuditEvent[]
   uploadedMediaAssets        MediaAsset[]
   uploadedMediaAssetVersions MediaAssetVersion[]
+  llmRequestLogs             LlmRequestLog[]
 
   @@map("user")
 }
@@ -205,6 +214,7 @@ model Film {
   auditEvents     AuditEvent[]
   mediaAssets     MediaAsset[]
   notificationMessages NotificationMessage[]
+  llmRequestLogs  LlmRequestLog[]
 
   @@map("film")
 }
@@ -510,4 +520,63 @@ model NotificationMessage {
   @@index([orgId, createdAt])
   @@index([providerMessageId])
   @@map("notification_message")
+}
+
+// ---------------------------------------------------------------------------
+// Model gateway (OrchaLLM stub) — no module ever calls an LLM provider
+// directly, per phase-0-findings.md §1.6; everything routes through
+// lib/orchallm/gateway.ts. LlmProvider is deliberately NOT org-scoped —
+// it's a catalog of provider *types* (same providers exist regardless of
+// which org is calling), not per-org credentials or per-org rows.
+// LlmRequestLog IS org-scoped and never holds raw prompt/response text,
+// only hashes — enough to reconstruct "who asked what kind of question,
+// when, against which provider" for an audit without holding the
+// sensitive content itself.
+// ---------------------------------------------------------------------------
+
+model LlmProvider {
+  id            String   @id @default(cuid())
+  key           String   @unique
+  label         String
+  zeroRetention Boolean  @default(false)
+  // Module keys allowed to route to this provider; empty = allowed for
+  // any module. Independent of the zero-retention gate below — a second,
+  // narrower allowlist for cases like RightsLedger needing a specific
+  // provider later, per phase-0-findings.md.
+  allowedFor    String[] @default([])
+  enabled       Boolean  @default(true)
+  createdAt     DateTime @default(now())
+
+  @@map("llm_provider")
+}
+
+model LlmRequestLog {
+  id                String   @id @default(cuid())
+  orgId             String
+  org               Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  filmId            String?
+  film              Film?    @relation(fields: [filmId], references: [id], onDelete: SetNull)
+  requestedByUserId String?
+  requestedByUser   User?    @relation(fields: [requestedByUserId], references: [id], onDelete: SetNull)
+  moduleKey         String
+  purpose           String
+  // Plain string, not a relation to LlmProvider — a request that was
+  // refused before any provider was selected still needs to log
+  // something (e.g. "none"), and findings.md lists this as a flat column.
+  providerKey       String
+  model             String
+  promptHash        String
+  responseHash      String?
+  tokenCountIn      Int?
+  tokenCountOut     Int?
+  zeroRetentionUsed Boolean  @default(false)
+  // Free string, not an enum — same reasoning as AuditEvent.action:
+  // "ok" | "refused" | "failed" today, new outcomes shouldn't need a
+  // migration.
+  status            String
+  failedReason      String?
+  createdAt         DateTime @default(now())
+
+  @@index([orgId, createdAt])
+  @@map("llm_request_log")
 }

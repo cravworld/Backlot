@@ -252,6 +252,23 @@ async function main() {
     },
   });
 
+  // ---- OrchaLLM provider registry (seeded, not UI-managed — a real
+  // deployment would grow this list as providers are approved) --------
+  await prisma.llmProvider.upsert({
+    where: { key: "anthropic-claude" },
+    update: {},
+    create: {
+      key: "anthropic-claude",
+      label: "Anthropic Claude",
+      // Honest default for a standard API key, not a placeholder: real
+      // zero-retention requires a specific enterprise agreement, which
+      // this deployment doesn't have. See lib/orchallm/anthropic-provider.ts.
+      zeroRetention: false,
+      allowedFor: [],
+      enabled: true,
+    },
+  });
+
   console.log("Seed complete.");
   console.log(`  Org: ${org.name}`);
   console.log(`  Users (password for all: ${DEV_PASSWORD}):`);

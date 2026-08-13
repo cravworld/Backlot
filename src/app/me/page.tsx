@@ -74,6 +74,9 @@ export default async function MePage({
                 <Link href="/notifications" className="text-sm text-verdigris hover:underline">
                   Notifications
                 </Link>
+                <Link href="/orchallm" className="text-sm text-verdigris hover:underline">
+                  OrchaLLM gateway
+                </Link>
               </>
             )}
             <LogoutButton />
