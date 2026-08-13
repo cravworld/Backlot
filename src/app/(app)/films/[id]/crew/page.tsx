@@ -33,7 +33,7 @@ export default async function FilmCrewPage({
 
   if (!admin && !assignment) {
     return (
-      <main className="min-h-screen bg-paper px-6 py-10 text-ink">
+      <main className="min-h-screen flex-1 bg-paper px-6 py-10 text-ink">
         <div className="mx-auto max-w-3xl">
           <PageHeader title={`${film.title} — crew`} backHref="/me" backLabel="Back to my profile" />
           <p className="text-base text-ink-soft">
@@ -83,7 +83,7 @@ export default async function FilmCrewPage({
   const boundCreate = createCrewRole.bind(null, film.id);
 
   return (
-    <main className="min-h-screen bg-paper px-6 py-10 text-ink">
+    <main className="min-h-screen flex-1 bg-paper px-6 py-10 text-ink">
       <div className="mx-auto max-w-3xl">
         <PageHeader
           title={`${film.title} — crew`}

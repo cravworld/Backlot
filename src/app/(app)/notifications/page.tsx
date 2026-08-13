@@ -30,7 +30,7 @@ export default async function NotificationsPage({
   const admin = await isOrgAdmin(session.user.id, session.user.orgId);
   if (!admin) {
     return (
-      <main className="min-h-screen bg-paper px-6 py-10 text-ink">
+      <main className="min-h-screen flex-1 bg-paper px-6 py-10 text-ink">
         <div className="mx-auto max-w-3xl">
           <PageHeader title="Notifications" backHref="/me" backLabel="Back to my profile" />
           <p className="text-base text-ink-soft">Dispatch is an org-admin area.</p>
@@ -52,7 +52,7 @@ export default async function NotificationsPage({
   ]);
 
   return (
-    <main className="min-h-screen bg-paper px-6 py-10 text-ink">
+    <main className="min-h-screen flex-1 bg-paper px-6 py-10 text-ink">
       <div className="mx-auto max-w-4xl">
         <PageHeader title="Notifications" backHref="/me" backLabel="Back to my profile" />
 

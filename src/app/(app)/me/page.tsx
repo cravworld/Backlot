@@ -9,20 +9,19 @@ import {
   getOrgRole,
   listUserFilms,
 } from "@/lib/rbac";
-import { LogoutButton } from "./logout-button";
+import { getCurrentFilm } from "@/lib/current-film";
 import { FilmSwitcher } from "./film-switcher";
 
 // This page exists to make RBAC resolution visible and clickable, per the
 // Phase 0 process: verify a spine component in the browser before it's
-// considered done, not just by reading code. It intentionally renders raw
-// resolved data rather than a polished UI — the nav rail shell with this
-// same data behind it is Step 4.
-
-export default async function MePage({
-  searchParams,
-}: {
-  searchParams: { film?: string };
-}) {
+// considered done, not just by reading code. Step 4's nav rail now owns
+// global navigation, branding, and the theme toggle — this page keeps
+// the raw resolved-permission detail (capabilities table, field-group
+// visibility) that's still useful spelled out, and shares the SAME
+// current-film selection as the rail (lib/current-film.ts, the
+// backlot_film cookie): switching film here moves the rail's module
+// tabs too, and switching it in the rail updates what's shown here.
+export default async function MePage() {
   const session = await getServerSession(authOptions);
   if (!session) redirect("/login");
 
@@ -31,56 +30,23 @@ export default async function MePage({
     listUserFilms(session.user.id),
   ]);
 
-  const selectedFilmId = searchParams.film ?? films[0]?.filmId;
-  const selectedFilm = films.find((f) => f.filmId === selectedFilmId);
+  const selectedFilm = films.length > 0 ? await getCurrentFilm(session.user.id, films) : null;
 
-  const [capabilities, navModules, fieldAccess] = selectedFilmId
+  const [capabilities, navModules, fieldAccess] = selectedFilm
     ? await Promise.all([
-        getEffectiveCapabilities(session.user.id, selectedFilmId),
-        getNavModules(session.user.id, selectedFilmId),
-        getFieldAccess(session.user.id, selectedFilmId),
+        getEffectiveCapabilities(session.user.id, selectedFilm.filmId),
+        getNavModules(session.user.id, selectedFilm.filmId),
+        getFieldAccess(session.user.id, selectedFilm.filmId),
       ])
     : [new Map<string, Set<string>>(), [] as string[], new Set<string>()];
 
   return (
-    <main className="min-h-screen bg-paper px-6 py-10 text-ink">
+    <main className="min-h-screen flex-1 bg-paper px-6 py-10 text-ink">
       <div className="mx-auto max-w-3xl">
-        <div className="mb-10 flex items-center justify-between border-b border-line pb-4">
-          <div className="flex items-center gap-2.5">
-            <div
-              className="h-5 w-5 flex-shrink-0 rounded-[3px]"
-              style={{
-                background:
-                  "linear-gradient(135deg, var(--verdigris) 0 50%, var(--ochre) 50% 100%)",
-              }}
-            />
-            <span className="font-display text-xl font-bold tracking-wide">BACKLOT</span>
-            <span className="ml-2 rounded-full border border-line px-2 py-0.5 font-mono text-xs uppercase tracking-wide text-ink-soft">
-              RBAC verification
-            </span>
-          </div>
-          <div className="flex items-center gap-5">
-            {(orgRole === "OWNER" || orgRole === "ADMIN") && (
-              <>
-                <Link href="/films" className="text-base text-verdigris hover:underline">
-                  Film registry
-                </Link>
-                <Link href="/people" className="text-base text-verdigris hover:underline">
-                  People
-                </Link>
-                <Link href="/audit" className="text-base text-verdigris hover:underline">
-                  Audit log
-                </Link>
-                <Link href="/notifications" className="text-base text-verdigris hover:underline">
-                  Notifications
-                </Link>
-                <Link href="/orchallm" className="text-base text-verdigris hover:underline">
-                  OrchaLLM gateway
-                </Link>
-              </>
-            )}
-            <LogoutButton />
-          </div>
+        <div className="mb-8 border-b border-line pb-5">
+          <h1 className="font-display text-2xl font-bold uppercase tracking-wide text-ink">
+            My profile
+          </h1>
         </div>
 
         {/* Identity */}
@@ -109,17 +75,12 @@ export default async function MePage({
           </h2>
           {films.length === 0 ? (
             <p className="text-base text-ink-soft">
-              No active film assignments — nothing to switch between yet.
+              No active film assignments — the nav rail is empty until you&apos;re assigned to
+              a film.
             </p>
           ) : (
-            <FilmSwitcher films={films} selectedFilmId={selectedFilmId} />
+            <FilmSwitcher films={films} selectedFilmId={selectedFilm?.filmId} />
           )}
-          {/* This page verifies RBAC resolution, not navigation — but
-              until Step 4's real nav rail exists, this is the ONLY click
-              path into a film's own pages for a non-admin user. Without
-              it, someone without org-admin access has no way to reach
-              /films/[id] (or crew/documents beneath it) except by typing
-              the URL directly. */}
           {selectedFilm && (
             <p className="mt-3">
               <Link
@@ -141,7 +102,8 @@ export default async function MePage({
               </h2>
               {navModules.length === 0 ? (
                 <p className="text-base text-ink-soft">
-                  No modules with a "view" capability for this role — nav rail would be empty.
+                  No modules with a "view" capability for this role — nav rail is empty for
+                  this film.
                 </p>
               ) : (
                 <div className="flex flex-wrap gap-2">
@@ -196,7 +158,8 @@ export default async function MePage({
               </h2>
               {fieldAccess.size === 0 ? (
                 <p className="text-base text-ink-soft">
-                  None granted — restricted fields (e.g. contact info) render as "—" for this role.
+                  None granted — restricted fields (e.g. contact info) render as "—" for this
+                  role.
                 </p>
               ) : (
                 <div className="flex flex-wrap gap-2">

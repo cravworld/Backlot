@@ -37,6 +37,16 @@ export default function RootLayout({
           href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@500;600;700;800&family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&family=IBM+Plex+Mono:wght@400;500;600&family=Noto+Sans+Malayalam:wght@400;500;600;700&display=swap"
           rel="stylesheet"
         />
+        {/* Blocking, pre-hydration: sets data-theme from the saved device
+            preference (src/components/nav-rail/theme-toggle.tsx) before
+            first paint, so a night-theme user never sees a flash of the
+            day palette on load. */}
+        <script
+          dangerouslySetInnerHTML={{
+            __html:
+              "(function(){try{if(localStorage.getItem('backlot-theme')==='night'){document.documentElement.setAttribute('data-theme','night');}}catch(e){}})();",
+          }}
+        />
       </head>
       <body className="font-body">
         <Providers>{children}</Providers>

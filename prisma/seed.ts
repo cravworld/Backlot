@@ -176,6 +176,23 @@ async function main() {
     },
   });
 
+  // Org member with no film assignment at all — the nav rail's empty
+  // state (Step 4 sign-off requirement) needs a real user to verify
+  // against, not just an inferred code path. A brand-new hire between
+  // being invited to the org and being staffed on a film is exactly
+  // this shape.
+  const unassignedUser = await prisma.user.upsert({
+    where: { email: "noassignment@backlot.dev" },
+    update: {},
+    create: {
+      id: "user_noassignment",
+      orgId: org.id,
+      email: "noassignment@backlot.dev",
+      name: "New Hire Unassigned",
+      passwordHash,
+    },
+  });
+
   await prisma.orgMembership.upsert({
     where: { orgId_userId: { orgId: org.id, userId: admin.id } },
     update: {},
@@ -190,6 +207,11 @@ async function main() {
     where: { orgId_userId: { orgId: org.id, userId: locationUser.id } },
     update: {},
     create: { orgId: org.id, userId: locationUser.id, orgRole: "MEMBER" },
+  });
+  await prisma.orgMembership.upsert({
+    where: { orgId_userId: { orgId: org.id, userId: unassignedUser.id } },
+    update: {},
+    create: { orgId: org.id, userId: unassignedUser.id, orgRole: "MEMBER" },
   });
 
   // ---- Film assignments ------------------------------------------------
@@ -275,6 +297,7 @@ async function main() {
   console.log("    admin@backlot.dev        — owner; 1st AD on Kumarakom Nights, Business Affairs on Fort Kochi Stories");
   console.log("    coordinator@backlot.dev  — Production Coordinator on Kumarakom Nights");
   console.log("    locations@backlot.dev    — Location Manager on Kumarakom Nights");
+  console.log("    noassignment@backlot.dev — org member, zero film assignments (nav rail empty-state case)");
 }
 
 main()

@@ -21,7 +21,7 @@ export default async function FilmAssignmentsPage({
   const admin = await isOrgAdmin(session.user.id, session.user.orgId);
   if (!admin) {
     return (
-      <main className="min-h-screen bg-paper px-6 py-10 text-ink">
+      <main className="min-h-screen flex-1 bg-paper px-6 py-10 text-ink">
         <div className="mx-auto max-w-3xl">
           <PageHeader title="Crew assignments" backHref="/me" backLabel="Back to my profile" />
           <p className="text-base text-ink-soft">
@@ -50,7 +50,7 @@ export default async function FilmAssignmentsPage({
   const boundCreate = createAssignment.bind(null, film.id);
 
   return (
-    <main className="min-h-screen bg-paper px-6 py-10 text-ink">
+    <main className="min-h-screen flex-1 bg-paper px-6 py-10 text-ink">
       <div className="mx-auto max-w-3xl">
         <PageHeader
           title={`${film.title} — login access`}

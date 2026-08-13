@@ -23,7 +23,7 @@ export default async function PersonDetailPage({
   const admin = await isOrgAdmin(session.user.id, session.user.orgId);
   if (!admin) {
     return (
-      <main className="min-h-screen bg-paper px-6 py-10 text-ink">
+      <main className="min-h-screen flex-1 bg-paper px-6 py-10 text-ink">
         <div className="mx-auto max-w-3xl">
           <PageHeader title="Person" backHref="/me" backLabel="Back to my profile" />
           <p className="text-base text-ink-soft">
@@ -57,7 +57,7 @@ export default async function PersonDetailPage({
   const boundUpdate = updatePerson.bind(null, person.id);
 
   return (
-    <main className="min-h-screen bg-paper px-6 py-10 text-ink">
+    <main className="min-h-screen flex-1 bg-paper px-6 py-10 text-ink">
       <div className="mx-auto max-w-3xl">
         <PageHeader title={person.fullName} backHref="/people" backLabel="Back to people" />
 

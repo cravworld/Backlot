@@ -21,7 +21,7 @@ export default async function FilmsPage({
   const admin = await isOrgAdmin(session.user.id, session.user.orgId);
   if (!admin) {
     return (
-      <main className="min-h-screen bg-paper px-6 py-10 text-ink">
+      <main className="min-h-screen flex-1 bg-paper px-6 py-10 text-ink">
         <div className="mx-auto max-w-3xl">
           <PageHeader title="Film registry" backHref="/me" backLabel="Back to my films" />
           <p className="text-base text-ink-soft">
@@ -44,7 +44,7 @@ export default async function FilmsPage({
   });
 
   return (
-    <main className="min-h-screen bg-paper px-6 py-10 text-ink">
+    <main className="min-h-screen flex-1 bg-paper px-6 py-10 text-ink">
       <div className="mx-auto max-w-3xl">
         <PageHeader title="Film registry" backHref="/me" backLabel="Back to my profile" />
 

@@ -27,7 +27,7 @@ export default async function FilmDetailPage({
 
   if (!film) {
     return (
-      <main className="min-h-screen bg-paper px-6 py-10 text-ink">
+      <main className="min-h-screen flex-1 bg-paper px-6 py-10 text-ink">
         <div className="mx-auto max-w-3xl">
           <PageHeader title="Film not found" backHref="/films" backLabel="Back to films" />
           <p className="text-base text-ink-soft">
@@ -48,7 +48,7 @@ export default async function FilmDetailPage({
 
   if (!admin && !assignment) {
     return (
-      <main className="min-h-screen bg-paper px-6 py-10 text-ink">
+      <main className="min-h-screen flex-1 bg-paper px-6 py-10 text-ink">
         <div className="mx-auto max-w-3xl">
           <PageHeader title={film.title} backHref="/me" backLabel="Back to my profile" />
           <p className="text-base text-ink-soft">
@@ -63,7 +63,7 @@ export default async function FilmDetailPage({
   const dateInput = (d: Date | null) => (d ? d.toISOString().slice(0, 10) : "");
 
   return (
-    <main className="min-h-screen bg-paper px-6 py-10 text-ink">
+    <main className="min-h-screen flex-1 bg-paper px-6 py-10 text-ink">
       <div className="mx-auto max-w-3xl">
         <PageHeader title={film.title} backHref="/films" backLabel="Back to films" />
 

@@ -22,7 +22,7 @@ export default async function AuditPage() {
   const admin = await isOrgAdmin(session.user.id, session.user.orgId);
   if (!admin) {
     return (
-      <main className="min-h-screen bg-paper px-6 py-10 text-ink">
+      <main className="min-h-screen flex-1 bg-paper px-6 py-10 text-ink">
         <div className="mx-auto max-w-4xl">
           <PageHeader title="Audit log" backHref="/me" backLabel="Back to my profile" />
           <p className="text-base text-ink-soft">The audit log is an org-admin area.</p>
@@ -42,7 +42,7 @@ export default async function AuditPage() {
   ]);
 
   return (
-    <main className="min-h-screen bg-paper px-6 py-10 text-ink">
+    <main className="min-h-screen flex-1 bg-paper px-6 py-10 text-ink">
       <div className="mx-auto max-w-5xl">
         <PageHeader title="Audit log" backHref="/me" backLabel="Back to my profile" />
 

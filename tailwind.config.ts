@@ -7,6 +7,12 @@ const config: Config = {
   darkMode: ["selector", '[data-theme="night"]'],
   theme: {
     extend: {
+      // Matches backlot-style-guide.html's nav-rail collapse breakpoint
+      // (`@media (max-width: 860px)`) — the rail switches from a fixed
+      // 220px sidebar to a horizontal scroll strip below this width.
+      screens: {
+        rail: "860px",
+      },
       colors: {
         ink: "var(--ink)",
         "ink-soft": "var(--ink-soft)",
