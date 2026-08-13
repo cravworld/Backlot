@@ -5,6 +5,7 @@ import { prisma } from "@/lib/prisma";
 import { isOrgAdmin } from "@/lib/rbac";
 import { PageHeader } from "@/components/page-header";
 import { SavedBanner } from "@/components/saved-banner";
+import { ErrorBanner } from "@/components/error-banner";
 import { SubmitButton } from "@/components/submit-button";
 import { uploadDocument, uploadNewVersion, deleteDocument } from "./actions";
 
@@ -19,7 +20,7 @@ export default async function FilmDocumentsPage({
   searchParams,
 }: {
   params: { id: string };
-  searchParams: { saved?: string };
+  searchParams: { saved?: string; error?: string };
 }) {
   const session = await getServerSession(authOptions);
   if (!session) redirect("/login");
@@ -71,6 +72,7 @@ export default async function FilmDocumentsPage({
         />
 
         <SavedBanner show={searchParams.saved === "1"} label="Document saved." />
+        <ErrorBanner message={searchParams.error} />
 
         <p className="mb-4 text-xs text-ink-soft">
           Every file is encrypted at rest with a per-file key. Every upload and download is

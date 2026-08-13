@@ -5,10 +5,17 @@ import { prisma } from "@/lib/prisma";
 import { canViewFieldGroup, isOrgAdmin } from "@/lib/rbac";
 import { PageHeader } from "@/components/page-header";
 import { SubmitButton } from "@/components/submit-button";
+import { ErrorBanner } from "@/components/error-banner";
 import { recordAuditEvent } from "@/lib/audit";
 import { createCrewRole, removeCrewRole } from "../../actions";
 
-export default async function FilmCrewPage({ params }: { params: { id: string } }) {
+export default async function FilmCrewPage({
+  params,
+  searchParams,
+}: {
+  params: { id: string };
+  searchParams: { error?: string };
+}) {
   const session = await getServerSession(authOptions);
   if (!session) redirect("/login");
 
@@ -83,6 +90,8 @@ export default async function FilmCrewPage({ params }: { params: { id: string } 
           backHref={`/films/${film.id}`}
           backLabel="Back to film"
         />
+
+        <ErrorBanner message={searchParams.error} />
 
         {!canSeeContact && (
           <p className="mb-4 text-xs text-ink-soft">

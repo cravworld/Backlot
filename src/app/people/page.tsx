@@ -6,9 +6,14 @@ import { prisma } from "@/lib/prisma";
 import { isOrgAdmin } from "@/lib/rbac";
 import { PageHeader } from "@/components/page-header";
 import { SubmitButton } from "@/components/submit-button";
+import { ErrorBanner } from "@/components/error-banner";
 import { createPerson } from "./actions";
 
-export default async function PeoplePage() {
+export default async function PeoplePage({
+  searchParams,
+}: {
+  searchParams: { error?: string };
+}) {
   const session = await getServerSession(authOptions);
   if (!session) redirect("/login");
 
@@ -37,6 +42,8 @@ export default async function PeoplePage() {
     <main className="min-h-screen bg-paper px-6 py-10 text-ink">
       <div className="mx-auto max-w-3xl">
         <PageHeader title="People registry" backHref="/me" backLabel="Back to my profile" />
+
+        <ErrorBanner message={searchParams.error} />
 
         <section className="mb-10">
           <h2 className="mb-3 font-mono text-xs uppercase tracking-wide text-verdigris">

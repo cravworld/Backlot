@@ -5,6 +5,7 @@ import { prisma } from "@/lib/prisma";
 import { isOrgAdmin } from "@/lib/rbac";
 import { PageHeader } from "@/components/page-header";
 import { SavedBanner } from "@/components/saved-banner";
+import { ErrorBanner } from "@/components/error-banner";
 import { SubmitButton } from "@/components/submit-button";
 import { recordAuditEvent } from "@/lib/audit";
 import { updatePerson } from "../actions";
@@ -14,7 +15,7 @@ export default async function PersonDetailPage({
   searchParams,
 }: {
   params: { id: string };
-  searchParams: { saved?: string };
+  searchParams: { saved?: string; error?: string };
 }) {
   const session = await getServerSession(authOptions);
   if (!session) redirect("/login");
@@ -61,6 +62,7 @@ export default async function PersonDetailPage({
         <PageHeader title={person.fullName} backHref="/people" backLabel="Back to people" />
 
         <SavedBanner show={searchParams.saved === "1"} label="Person saved." />
+        <ErrorBanner message={searchParams.error} />
 
         <form
           action={boundUpdate}

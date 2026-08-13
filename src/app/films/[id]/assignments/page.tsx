@@ -5,12 +5,15 @@ import { prisma } from "@/lib/prisma";
 import { isOrgAdmin } from "@/lib/rbac";
 import { PageHeader } from "@/components/page-header";
 import { SubmitButton } from "@/components/submit-button";
+import { ErrorBanner } from "@/components/error-banner";
 import { createAssignment, setAssignmentStatus } from "../../actions";
 
 export default async function FilmAssignmentsPage({
   params,
+  searchParams,
 }: {
   params: { id: string };
+  searchParams: { error?: string };
 }) {
   const session = await getServerSession(authOptions);
   if (!session) redirect("/login");
@@ -54,6 +57,8 @@ export default async function FilmAssignmentsPage({
           backHref={`/films/${film.id}`}
           backLabel="Back to film"
         />
+
+        <ErrorBanner message={searchParams.error} />
 
         <section className="mb-10">
           <h2 className="mb-3 font-mono text-xs uppercase tracking-wide text-verdigris">

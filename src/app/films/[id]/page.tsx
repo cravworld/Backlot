@@ -7,6 +7,7 @@ import { isOrgAdmin } from "@/lib/rbac";
 import { FilmStatusBadge } from "@/components/film-status-badge";
 import { PageHeader } from "@/components/page-header";
 import { SavedBanner } from "@/components/saved-banner";
+import { ErrorBanner } from "@/components/error-banner";
 import { SubmitButton } from "@/components/submit-button";
 import { updateFilm } from "../actions";
 
@@ -15,7 +16,7 @@ export default async function FilmDetailPage({
   searchParams,
 }: {
   params: { id: string };
-  searchParams: { saved?: string };
+  searchParams: { saved?: string; error?: string };
 }) {
   const session = await getServerSession(authOptions);
   if (!session) redirect("/login");
@@ -91,6 +92,7 @@ export default async function FilmDetailPage({
         </div>
 
         <SavedBanner show={searchParams.saved === "1"} label="Film saved." />
+        <ErrorBanner message={searchParams.error} />
 
         {admin ? (
           <form

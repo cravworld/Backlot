@@ -5,6 +5,7 @@ import { prisma } from "@/lib/prisma";
 import { isOrgAdmin } from "@/lib/rbac";
 import { PageHeader } from "@/components/page-header";
 import { SavedBanner } from "@/components/saved-banner";
+import { ErrorBanner } from "@/components/error-banner";
 import { SubmitButton } from "@/components/submit-button";
 import { sendTestMessage } from "./actions";
 
@@ -21,7 +22,7 @@ const PAGE_SIZE = 50;
 export default async function NotificationsPage({
   searchParams,
 }: {
-  searchParams: { saved?: string };
+  searchParams: { saved?: string; error?: string };
 }) {
   const session = await getServerSession(authOptions);
   if (!session) redirect("/login");
@@ -56,6 +57,7 @@ export default async function NotificationsPage({
         <PageHeader title="Notifications" backHref="/me" backLabel="Back to my profile" />
 
         <SavedBanner show={searchParams.saved === "1"} label="Message dispatched — see result below." />
+        <ErrorBanner message={searchParams.error} />
 
         <p className="mb-4 text-xs text-ink-soft">
           Every send goes through the shared dispatch service (lib/notifications/dispatch.ts) —

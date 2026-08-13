@@ -3,6 +3,7 @@ import { recordAuditEvent } from "@/lib/audit";
 import { whatsAppAdapter } from "./whatsapp-adapter";
 import { emailAdapter } from "./email-adapter";
 import type { NotificationChannel, NotificationProvider, WebhookStatusEvent } from "./types";
+import { ActionError } from "@/lib/action-error";
 
 const PROVIDERS: Record<NotificationChannel, NotificationProvider> = {
   WHATSAPP: whatsAppAdapter,
@@ -45,7 +46,7 @@ export async function dispatchNotification(input: DispatchInput) {
   const recipient = await prisma.person.findFirst({
     where: { id: input.recipientPersonId, orgId: input.orgId },
   });
-  if (!recipient) throw new Error("Recipient not found in this org.");
+  if (!recipient) throw new ActionError("Recipient not found in this org.");
 
   if (recipient.isMinor && !input.allowMinorRecipient) {
     // Per sign-off open question 9, the safe default should exist "from
@@ -68,7 +69,7 @@ export async function dispatchNotification(input: DispatchInput) {
         reason: "minor_recipient_not_opted_in",
       },
     });
-    throw new Error(
+    throw new ActionError(
       `${recipient.fullName} is flagged as a minor and is excluded from distribution by ` +
         "default (sign-off open question 9). Pass allowMinorRecipient explicitly to override."
     );
@@ -80,7 +81,7 @@ export async function dispatchNotification(input: DispatchInput) {
       : recipient.email;
   if (!recipientContact) {
     const kind = input.channel === "WHATSAPP" ? "WhatsApp number or phone" : "email address";
-    throw new Error(`${recipient.fullName} has no ${kind} on file.`);
+    throw new ActionError(`${recipient.fullName} has no ${kind} on file.`);
   }
 
   const message = await prisma.notificationMessage.create({

@@ -7,9 +7,14 @@ import { isOrgAdmin } from "@/lib/rbac";
 import { FilmStatusBadge } from "@/components/film-status-badge";
 import { PageHeader } from "@/components/page-header";
 import { SubmitButton } from "@/components/submit-button";
+import { ErrorBanner } from "@/components/error-banner";
 import { createFilm } from "./actions";
 
-export default async function FilmsPage() {
+export default async function FilmsPage({
+  searchParams,
+}: {
+  searchParams: { error?: string };
+}) {
   const session = await getServerSession(authOptions);
   if (!session) redirect("/login");
 
@@ -42,6 +47,8 @@ export default async function FilmsPage() {
     <main className="min-h-screen bg-paper px-6 py-10 text-ink">
       <div className="mx-auto max-w-3xl">
         <PageHeader title="Film registry" backHref="/me" backLabel="Back to my profile" />
+
+        <ErrorBanner message={searchParams.error} />
 
         <section className="mb-10">
           <h2 className="mb-3 font-mono text-xs uppercase tracking-wide text-verdigris">
