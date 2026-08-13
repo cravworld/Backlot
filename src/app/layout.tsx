@@ -2,9 +2,26 @@ import type { Metadata } from "next";
 import "./globals.css";
 import { Providers } from "./providers";
 
+// robots: noindex — this is an internal production-management tool, not
+// a public site; nothing here should end up in a search index. Not
+// asked for explicitly, added on the same reasoning as the rest of the
+// app's privacy posture.
 export const metadata: Metadata = {
+  metadataBase: new URL(process.env.NEXTAUTH_URL ?? "http://localhost:3000"),
   title: "Backlot",
   description: "Internal production management platform",
+  robots: { index: false, follow: false },
+  openGraph: {
+    title: "Backlot",
+    description: "Internal production management platform",
+    siteName: "Backlot",
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Backlot",
+    description: "Internal production management platform",
+  },
 };
 
 export default function RootLayout({
