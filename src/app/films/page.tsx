@@ -24,7 +24,7 @@ export default async function FilmsPage({
       <main className="min-h-screen bg-paper px-6 py-10 text-ink">
         <div className="mx-auto max-w-3xl">
           <PageHeader title="Film registry" backHref="/me" backLabel="Back to my films" />
-          <p className="text-sm text-ink-soft">
+          <p className="text-base text-ink-soft">
             Film registry management is an org-admin area — your account doesn&apos;t hold
             that permission. Your assigned films are listed on{" "}
             <Link href="/me" className="text-verdigris underline">
@@ -55,13 +55,13 @@ export default async function FilmsPage({
             Films ({films.length})
           </h2>
           {films.length === 0 ? (
-            <p className="text-sm text-ink-soft">
+            <p className="text-base text-ink-soft">
               No films yet — create the first one below.
             </p>
           ) : (
-            <table className="w-full border-collapse text-sm">
+            <table className="w-full border-collapse text-base">
               <thead>
-                <tr className="border-b border-line text-left font-mono text-[11px] uppercase tracking-wide text-ink-soft">
+                <tr className="border-b border-line text-left font-mono text-xs uppercase tracking-wide text-ink-soft">
                   <th className="py-2 pr-4">Title</th>
                   <th className="py-2 pr-4">Status</th>
                   <th className="py-2 pr-4">Language</th>
@@ -72,25 +72,25 @@ export default async function FilmsPage({
               <tbody>
                 {films.map((film) => (
                   <tr key={film.id} className="border-b border-line hover:bg-slate">
-                    <td className="py-2.5 pr-4">
+                    <td className="py-3 pr-4">
                       <div className="font-medium">{film.title}</div>
                       {film.workingTitle && (
-                        <div className="text-xs text-ink-soft">{film.workingTitle}</div>
+                        <div className="text-sm text-ink-soft">{film.workingTitle}</div>
                       )}
                     </td>
-                    <td className="py-2.5 pr-4">
+                    <td className="py-3 pr-4">
                       <FilmStatusBadge status={film.status} />
                     </td>
-                    <td className="py-2.5 pr-4 text-ink-soft">
+                    <td className="py-3 pr-4 text-ink-soft">
                       {film.primaryLanguage ?? "—"}
                     </td>
-                    <td className="py-2.5 pr-4 font-mono text-ink-soft">
+                    <td className="py-3 pr-4 font-mono text-ink-soft">
                       {film._count.filmAssignments}
                     </td>
-                    <td className="py-2.5 text-right">
+                    <td className="py-3 text-right">
                       <Link
                         href={`/films/${film.id}`}
-                        className="text-sm text-verdigris hover:underline"
+                        className="text-base text-verdigris hover:underline"
                       >
                         Open
                       </Link>
@@ -116,13 +116,13 @@ export default async function FilmsPage({
             </div>
             <div className="grid grid-cols-3 gap-4">
               <div className="flex flex-col gap-1.5">
-                <label className="text-xs font-medium uppercase tracking-wide text-ink-soft">
+                <label className="text-sm font-medium uppercase tracking-wide text-ink-soft">
                   Status
                 </label>
                 <select
                   name="status"
                   defaultValue="PREP"
-                  className="rounded-sm border border-line bg-paper px-3 py-2.5 text-sm text-ink outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sky"
+                  className="rounded-sm border border-line bg-paper px-3 py-3 text-base text-ink outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sky"
                 >
                   <option value="PREP">Prep</option>
                   <option value="SHOOT">Shoot</option>
@@ -138,7 +138,7 @@ export default async function FilmsPage({
 
             <SubmitButton
               pendingText="Creating…"
-              className="mt-2 w-fit rounded-sm bg-verdigris px-5 py-2.5 text-sm font-semibold text-paper-raised transition-colors hover:bg-verdigris-ink"
+              className="mt-2 w-fit rounded-sm bg-verdigris px-5 py-3 text-base font-semibold text-paper-raised transition-colors hover:bg-verdigris-ink"
             >
               Create film
             </SubmitButton>
@@ -166,7 +166,7 @@ function Field({
     <div className="flex flex-col gap-1.5">
       <label
         htmlFor={name}
-        className="text-xs font-medium uppercase tracking-wide text-ink-soft"
+        className="text-sm font-medium uppercase tracking-wide text-ink-soft"
       >
         {label}
       </label>
@@ -176,7 +176,7 @@ function Field({
         type={type}
         required={required}
         placeholder={placeholder}
-        className="rounded-sm border border-line bg-paper px-3 py-2.5 text-sm text-ink outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sky"
+        className="rounded-sm border border-line bg-paper px-3 py-3 text-base text-ink outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sky"
       />
     </div>
   );

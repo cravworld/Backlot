@@ -7,7 +7,7 @@ export function ErrorBanner({ message }: { message?: string }) {
   if (!message) return null;
   return (
     <p
-      className="mb-4 w-fit max-w-xl rounded-sm px-3 py-2 text-sm"
+      className="mb-4 w-fit max-w-xl rounded-sm px-3 py-2.5 text-base"
       style={{
         color: "var(--clay)",
         background: "color-mix(in srgb, var(--clay) 12%, transparent)",

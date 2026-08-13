@@ -26,7 +26,7 @@ export default async function PersonDetailPage({
       <main className="min-h-screen bg-paper px-6 py-10 text-ink">
         <div className="mx-auto max-w-3xl">
           <PageHeader title="Person" backHref="/me" backLabel="Back to my profile" />
-          <p className="text-sm text-ink-soft">
+          <p className="text-base text-ink-soft">
             The people registry is an org-admin area.
           </p>
         </div>
@@ -93,7 +93,7 @@ export default async function PersonDetailPage({
           <div className="flex flex-col gap-1.5">
             <label
               htmlFor="notes"
-              className="text-xs font-medium uppercase tracking-wide text-ink-soft"
+              className="text-sm font-medium uppercase tracking-wide text-ink-soft"
             >
               Notes
             </label>
@@ -102,16 +102,16 @@ export default async function PersonDetailPage({
               name="notes"
               rows={2}
               defaultValue={person.notes ?? ""}
-              className="rounded-sm border border-line bg-paper px-3 py-2.5 text-sm text-ink outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sky"
+              className="rounded-sm border border-line bg-paper px-3 py-3 text-base text-ink outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sky"
             />
           </div>
-          <label className="flex w-fit items-center gap-2 text-sm text-ink">
+          <label className="flex w-fit items-center gap-2 text-base text-ink">
             <input type="checkbox" name="isMinor" defaultChecked={person.isMinor} className="h-4 w-4" />
             This person is a minor
           </label>
           {person.isMinor && (
             <p
-              className="w-fit rounded-sm px-3 py-2 text-xs"
+              className="w-fit rounded-sm px-3 py-2.5 text-sm"
               style={{
                 color: "var(--clay)",
                 background: "color-mix(in srgb, var(--clay) 10%, transparent)",
@@ -124,7 +124,7 @@ export default async function PersonDetailPage({
 
           <SubmitButton
             pendingText="Saving…"
-            className="mt-2 w-fit rounded-sm bg-verdigris px-5 py-2.5 text-sm font-semibold text-paper-raised transition-colors hover:bg-verdigris-ink"
+            className="mt-2 w-fit rounded-sm bg-verdigris px-5 py-3 text-base font-semibold text-paper-raised transition-colors hover:bg-verdigris-ink"
           >
             Save changes
           </SubmitButton>
@@ -135,13 +135,13 @@ export default async function PersonDetailPage({
             Film roles ({person.filmRoles.length})
           </h2>
           {person.filmRoles.length === 0 ? (
-            <p className="text-sm text-ink-soft">
+            <p className="text-base text-ink-soft">
               Not attached to any film yet — add them from a film&apos;s crew page.
             </p>
           ) : (
-            <table className="w-full border-collapse text-sm">
+            <table className="w-full border-collapse text-base">
               <thead>
-                <tr className="border-b border-line text-left font-mono text-[11px] uppercase tracking-wide text-ink-soft">
+                <tr className="border-b border-line text-left font-mono text-xs uppercase tracking-wide text-ink-soft">
                   <th className="py-2 pr-4">Film</th>
                   <th className="py-2 pr-4">Role</th>
                   <th className="py-2 pr-4">Department</th>
@@ -150,9 +150,9 @@ export default async function PersonDetailPage({
               <tbody>
                 {person.filmRoles.map((fr) => (
                   <tr key={fr.id} className="border-b border-line">
-                    <td className="py-2.5 pr-4">{fr.film.title}</td>
-                    <td className="py-2.5 pr-4">{fr.role.label}</td>
-                    <td className="py-2.5 pr-4 text-ink-soft">{fr.department ?? "—"}</td>
+                    <td className="py-3 pr-4">{fr.film.title}</td>
+                    <td className="py-3 pr-4">{fr.role.label}</td>
+                    <td className="py-3 pr-4 text-ink-soft">{fr.department ?? "—"}</td>
                   </tr>
                 ))}
               </tbody>
@@ -181,7 +181,7 @@ function Field({
     <div className="flex flex-col gap-1.5">
       <label
         htmlFor={name}
-        className="text-xs font-medium uppercase tracking-wide text-ink-soft"
+        className="text-sm font-medium uppercase tracking-wide text-ink-soft"
       >
         {label}
       </label>
@@ -191,7 +191,7 @@ function Field({
         type={type}
         required={required}
         defaultValue={defaultValue}
-        className="rounded-sm border border-line bg-paper px-3 py-2.5 text-sm text-ink outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sky"
+        className="rounded-sm border border-line bg-paper px-3 py-3 text-base text-ink outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sky"
       />
     </div>
   );

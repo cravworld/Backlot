@@ -17,7 +17,7 @@ export function FilmStatusBadge({ status }: { status: FilmStatus }) {
   const { color, label } = STATUS_STYLE[status];
   return (
     <span
-      className="inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 font-mono text-[11px] uppercase tracking-wide"
+      className="inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 font-mono text-xs uppercase tracking-wide"
       style={{
         color,
         background: `color-mix(in srgb, ${color} 14%, transparent)`,

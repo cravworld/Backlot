@@ -7,7 +7,7 @@ export function SavedBanner({ show, label }: { show: boolean; label: string }) {
   if (!show) return null;
   return (
     <p
-      className="mb-4 w-fit rounded-sm px-3 py-2 text-sm"
+      className="mb-4 w-fit rounded-sm px-3 py-2.5 text-base"
       style={{
         color: "var(--verdigris)",
         background: "color-mix(in srgb, var(--verdigris) 12%, transparent)",

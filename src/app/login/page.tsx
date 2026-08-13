@@ -51,7 +51,7 @@ export default function LoginPage() {
 
         <form onSubmit={handleSubmit} className="flex flex-col gap-4">
           <div className="flex flex-col gap-1.5">
-            <label htmlFor="email" className="text-xs font-medium uppercase tracking-wide text-ink-soft">
+            <label htmlFor="email" className="text-sm font-medium uppercase tracking-wide text-ink-soft">
               Email
             </label>
             <input
@@ -61,12 +61,12 @@ export default function LoginPage() {
               required
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="rounded-sm border border-line bg-paper px-3 py-2.5 text-sm text-ink outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sky"
+              className="rounded-sm border border-line bg-paper px-3 py-3 text-base text-ink outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sky"
             />
           </div>
 
           <div className="flex flex-col gap-1.5">
-            <label htmlFor="password" className="text-xs font-medium uppercase tracking-wide text-ink-soft">
+            <label htmlFor="password" className="text-sm font-medium uppercase tracking-wide text-ink-soft">
               Password
             </label>
             <input
@@ -76,12 +76,12 @@ export default function LoginPage() {
               required
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="rounded-sm border border-line bg-paper px-3 py-2.5 text-sm text-ink outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sky"
+              className="rounded-sm border border-line bg-paper px-3 py-3 text-base text-ink outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sky"
             />
           </div>
 
           {error && (
-            <p className="text-sm text-clay" role="alert">
+            <p className="text-base text-clay" role="alert">
               {error}
             </p>
           )}
@@ -89,7 +89,7 @@ export default function LoginPage() {
           <button
             type="submit"
             disabled={submitting}
-            className="mt-2 rounded-sm bg-verdigris px-5 py-2.5 text-sm font-semibold text-paper-raised transition-colors hover:bg-verdigris-ink disabled:opacity-60"
+            className="mt-2 rounded-sm bg-verdigris px-5 py-3 text-base font-semibold text-paper-raised transition-colors hover:bg-verdigris-ink disabled:opacity-60"
           >
             {submitting ? "Signing in…" : "Sign in"}
           </button>

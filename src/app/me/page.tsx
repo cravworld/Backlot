@@ -55,26 +55,26 @@ export default async function MePage({
               }}
             />
             <span className="font-display text-xl font-bold tracking-wide">BACKLOT</span>
-            <span className="ml-2 rounded-full border border-line px-2 py-0.5 font-mono text-[11px] uppercase tracking-wide text-ink-soft">
+            <span className="ml-2 rounded-full border border-line px-2 py-0.5 font-mono text-xs uppercase tracking-wide text-ink-soft">
               RBAC verification
             </span>
           </div>
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-5">
             {(orgRole === "OWNER" || orgRole === "ADMIN") && (
               <>
-                <Link href="/films" className="text-sm text-verdigris hover:underline">
+                <Link href="/films" className="text-base text-verdigris hover:underline">
                   Film registry
                 </Link>
-                <Link href="/people" className="text-sm text-verdigris hover:underline">
+                <Link href="/people" className="text-base text-verdigris hover:underline">
                   People
                 </Link>
-                <Link href="/audit" className="text-sm text-verdigris hover:underline">
+                <Link href="/audit" className="text-base text-verdigris hover:underline">
                   Audit log
                 </Link>
-                <Link href="/notifications" className="text-sm text-verdigris hover:underline">
+                <Link href="/notifications" className="text-base text-verdigris hover:underline">
                   Notifications
                 </Link>
-                <Link href="/orchallm" className="text-sm text-verdigris hover:underline">
+                <Link href="/orchallm" className="text-base text-verdigris hover:underline">
                   OrchaLLM gateway
                 </Link>
               </>
@@ -89,7 +89,7 @@ export default async function MePage({
             Signed in as
           </h2>
           <div className="rounded-md border border-line bg-paper-raised p-4 shadow-card">
-            <div className="flex flex-wrap items-center gap-x-6 gap-y-2 font-mono text-sm">
+            <div className="flex flex-wrap items-center gap-x-6 gap-y-2 font-mono text-base">
               <span><span className="text-ink-soft">Name</span> {session.user.name}</span>
               <span><span className="text-ink-soft">Email</span> {session.user.email}</span>
               <span><span className="text-ink-soft">User ID</span> {session.user.id}</span>
@@ -108,7 +108,7 @@ export default async function MePage({
             Films ({films.length})
           </h2>
           {films.length === 0 ? (
-            <p className="text-sm text-ink-soft">
+            <p className="text-base text-ink-soft">
               No active film assignments — nothing to switch between yet.
             </p>
           ) : (
@@ -124,7 +124,7 @@ export default async function MePage({
             <p className="mt-3">
               <Link
                 href={`/films/${selectedFilm.filmId}`}
-                className="text-sm text-verdigris hover:underline"
+                className="text-base text-verdigris hover:underline"
               >
                 Open {selectedFilm.filmTitle} →
               </Link>
@@ -140,7 +140,7 @@ export default async function MePage({
                 Nav rail modules resolved for {selectedFilm.filmTitle}
               </h2>
               {navModules.length === 0 ? (
-                <p className="text-sm text-ink-soft">
+                <p className="text-base text-ink-soft">
                   No modules with a "view" capability for this role — nav rail would be empty.
                 </p>
               ) : (
@@ -148,7 +148,7 @@ export default async function MePage({
                   {navModules.map((m) => (
                     <span
                       key={m}
-                      className="rounded-full border border-line bg-paper-raised px-3 py-1 font-mono text-xs uppercase tracking-wide"
+                      className="rounded-full border border-line bg-paper-raised px-3 py-1.5 font-mono text-sm uppercase tracking-wide"
                     >
                       {m}
                     </span>
@@ -162,9 +162,9 @@ export default async function MePage({
               <h2 className="mb-3 font-mono text-xs uppercase tracking-wide text-verdigris">
                 Effective capabilities
               </h2>
-              <table className="w-full border-collapse text-sm">
+              <table className="w-full border-collapse text-base">
                 <thead>
-                  <tr className="border-b border-line text-left font-mono text-[11px] uppercase tracking-wide text-ink-soft">
+                  <tr className="border-b border-line text-left font-mono text-xs uppercase tracking-wide text-ink-soft">
                     <th className="py-2 pr-4">Module</th>
                     <th className="py-2">Capabilities</th>
                   </tr>
@@ -173,7 +173,7 @@ export default async function MePage({
                   {[...capabilities.entries()].map(([moduleKey, caps]) => (
                     <tr key={moduleKey} className="border-b border-line">
                       <td className="py-2.5 pr-4 font-medium">{moduleKey}</td>
-                      <td className="py-2.5 font-mono text-xs text-ink-soft">
+                      <td className="py-2.5 font-mono text-sm text-ink-soft">
                         {[...caps].join(", ")}
                       </td>
                     </tr>
@@ -195,7 +195,7 @@ export default async function MePage({
                 Restricted field groups visible
               </h2>
               {fieldAccess.size === 0 ? (
-                <p className="text-sm text-ink-soft">
+                <p className="text-base text-ink-soft">
                   None granted — restricted fields (e.g. contact info) render as "—" for this role.
                 </p>
               ) : (
@@ -203,7 +203,7 @@ export default async function MePage({
                   {[...fieldAccess].map((g) => (
                     <span
                       key={g}
-                      className="rounded-full px-3 py-1 font-mono text-xs uppercase tracking-wide text-ochre"
+                      className="rounded-full px-3 py-1.5 font-mono text-sm uppercase tracking-wide text-ochre"
                       style={{
                         border: "1px solid color-mix(in srgb, var(--ochre) 40%, transparent)",
                         background: "color-mix(in srgb, var(--ochre) 10%, transparent)",

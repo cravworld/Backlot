@@ -30,7 +30,7 @@ export default async function FilmDetailPage({
       <main className="min-h-screen bg-paper px-6 py-10 text-ink">
         <div className="mx-auto max-w-3xl">
           <PageHeader title="Film not found" backHref="/films" backLabel="Back to films" />
-          <p className="text-sm text-ink-soft">
+          <p className="text-base text-ink-soft">
             No film with that ID in your org — it may have been removed, or the link is wrong.
           </p>
         </div>
@@ -51,7 +51,7 @@ export default async function FilmDetailPage({
       <main className="min-h-screen bg-paper px-6 py-10 text-ink">
         <div className="mx-auto max-w-3xl">
           <PageHeader title={film.title} backHref="/me" backLabel="Back to my profile" />
-          <p className="text-sm text-ink-soft">
+          <p className="text-base text-ink-soft">
             You don&apos;t have an assignment on this film — nothing to show.
           </p>
         </div>
@@ -71,20 +71,20 @@ export default async function FilmDetailPage({
           <FilmStatusBadge status={film.status} />
           <Link
             href={`/films/${film.id}/crew`}
-            className="text-sm text-verdigris hover:underline"
+            className="text-base text-verdigris hover:underline"
           >
             Crew →
           </Link>
           <Link
             href={`/films/${film.id}/documents`}
-            className="text-sm text-verdigris hover:underline"
+            className="text-base text-verdigris hover:underline"
           >
             Documents →
           </Link>
           {admin && (
             <Link
               href={`/films/${film.id}/assignments`}
-              className="text-sm text-verdigris hover:underline"
+              className="text-base text-verdigris hover:underline"
             >
               Manage login access →
             </Link>
@@ -109,13 +109,13 @@ export default async function FilmDetailPage({
             </div>
             <div className="grid grid-cols-3 gap-4">
               <div className="flex flex-col gap-1.5">
-                <label className="text-xs font-medium uppercase tracking-wide text-ink-soft">
+                <label className="text-sm font-medium uppercase tracking-wide text-ink-soft">
                   Status
                 </label>
                 <select
                   name="status"
                   defaultValue={film.status}
-                  className="rounded-sm border border-line bg-paper px-3 py-2.5 text-sm text-ink outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sky"
+                  className="rounded-sm border border-line bg-paper px-3 py-3 text-base text-ink outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sky"
                 >
                   <option value="PREP">Prep</option>
                   <option value="SHOOT">Shoot</option>
@@ -145,14 +145,14 @@ export default async function FilmDetailPage({
 
             <SubmitButton
               pendingText="Saving…"
-              className="mt-2 w-fit rounded-sm bg-verdigris px-5 py-2.5 text-sm font-semibold text-paper-raised transition-colors hover:bg-verdigris-ink"
+              className="mt-2 w-fit rounded-sm bg-verdigris px-5 py-3 text-base font-semibold text-paper-raised transition-colors hover:bg-verdigris-ink"
             >
               Save changes
             </SubmitButton>
           </form>
         ) : (
           <div className="rounded-md border border-line bg-paper-raised p-5 shadow-card">
-            <dl className="grid grid-cols-2 gap-4 font-mono text-sm">
+            <dl className="grid grid-cols-2 gap-4 font-mono text-base">
               <div>
                 <dt className="text-ink-soft">Your role</dt>
                 <dd>{assignment?.role.label ?? "—"}</dd>
@@ -172,7 +172,7 @@ export default async function FilmDetailPage({
                 </dd>
               </div>
             </dl>
-            <p className="mt-4 text-xs text-ink-soft">
+            <p className="mt-4 text-sm text-ink-soft">
               Read-only — editing film details requires org-admin access.
             </p>
           </div>
@@ -199,7 +199,7 @@ function Field({
     <div className="flex flex-col gap-1.5">
       <label
         htmlFor={name}
-        className="text-xs font-medium uppercase tracking-wide text-ink-soft"
+        className="text-sm font-medium uppercase tracking-wide text-ink-soft"
       >
         {label}
       </label>
@@ -209,7 +209,7 @@ function Field({
         type={type}
         required={required}
         defaultValue={defaultValue}
-        className="rounded-sm border border-line bg-paper px-3 py-2.5 text-sm text-ink outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sky"
+        className="rounded-sm border border-line bg-paper px-3 py-3 text-base text-ink outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sky"
       />
     </div>
   );

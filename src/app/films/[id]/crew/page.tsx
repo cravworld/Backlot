@@ -36,7 +36,7 @@ export default async function FilmCrewPage({
       <main className="min-h-screen bg-paper px-6 py-10 text-ink">
         <div className="mx-auto max-w-3xl">
           <PageHeader title={`${film.title} — crew`} backHref="/me" backLabel="Back to my profile" />
-          <p className="text-sm text-ink-soft">
+          <p className="text-base text-ink-soft">
             You don&apos;t have an assignment on this film — nothing to show.
           </p>
         </div>
@@ -94,7 +94,7 @@ export default async function FilmCrewPage({
         <ErrorBanner message={searchParams.error} />
 
         {!canSeeContact && (
-          <p className="mb-4 text-xs text-ink-soft">
+          <p className="mb-4 text-sm text-ink-soft">
             Contact info is restricted for your role on this film — shown as "—" below.
           </p>
         )}
@@ -104,11 +104,11 @@ export default async function FilmCrewPage({
             Crew ({crew.length})
           </h2>
           {crew.length === 0 ? (
-            <p className="text-sm text-ink-soft">No one on this film yet.</p>
+            <p className="text-base text-ink-soft">No one on this film yet.</p>
           ) : (
-            <table className="w-full border-collapse text-sm">
+            <table className="w-full border-collapse text-base">
               <thead>
-                <tr className="border-b border-line text-left font-mono text-[11px] uppercase tracking-wide text-ink-soft">
+                <tr className="border-b border-line text-left font-mono text-xs uppercase tracking-wide text-ink-soft">
                   <th className="py-2 pr-4">Name</th>
                   <th className="py-2 pr-4">Role</th>
                   <th className="py-2 pr-4">Department</th>
@@ -120,12 +120,12 @@ export default async function FilmCrewPage({
               <tbody>
                 {crew.map((c) => (
                   <tr key={c.id} className="border-b border-line hover:bg-slate">
-                    <td className="py-2.5 pr-4">
+                    <td className="py-3 pr-4">
                       <div className="flex items-center gap-2 font-medium">
                         {c.person.fullName}
                         {c.person.isMinor && (
                           <span
-                            className="rounded-full px-2 py-0.5 font-mono text-[10px] uppercase tracking-wide"
+                            className="rounded-full px-2 py-0.5 font-mono text-xs uppercase tracking-wide"
                             style={{
                               color: "var(--clay)",
                               background: "color-mix(in srgb, var(--clay) 12%, transparent)",
@@ -136,18 +136,18 @@ export default async function FilmCrewPage({
                         )}
                       </div>
                     </td>
-                    <td className="py-2.5 pr-4">{c.role.label}</td>
-                    <td className="py-2.5 pr-4 text-ink-soft">{c.department ?? "—"}</td>
-                    <td className="py-2.5 pr-4 text-ink-soft">
+                    <td className="py-3 pr-4">{c.role.label}</td>
+                    <td className="py-3 pr-4 text-ink-soft">{c.department ?? "—"}</td>
+                    <td className="py-3 pr-4 text-ink-soft">
                       {canSeeContact
                         ? c.person.phone ?? c.person.email ?? c.person.whatsappNumber ?? "—"
                         : "—"}
                     </td>
-                    <td className="py-2.5 pr-4 text-ink-soft">{c.languagePref ?? "—"}</td>
+                    <td className="py-3 pr-4 text-ink-soft">{c.languagePref ?? "—"}</td>
                     {admin && (
-                      <td className="py-2.5 text-right">
+                      <td className="py-3 text-right">
                         <form action={removeCrewRole.bind(null, c.id, film.id)}>
-                          <SubmitButton pendingText="Removing…" className="text-sm text-clay hover:underline">
+                          <SubmitButton pendingText="Removing…" className="text-base text-clay hover:underline">
                             Remove
                           </SubmitButton>
                         </form>
@@ -171,13 +171,13 @@ export default async function FilmCrewPage({
             >
               <div className="grid grid-cols-2 gap-4">
                 <div className="flex flex-col gap-1.5">
-                  <label className="text-xs font-medium uppercase tracking-wide text-ink-soft">
+                  <label className="text-sm font-medium uppercase tracking-wide text-ink-soft">
                     Person
                   </label>
                   <select
                     name="personId"
                     required
-                    className="rounded-sm border border-line bg-paper px-3 py-2.5 text-sm text-ink outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sky"
+                    className="rounded-sm border border-line bg-paper px-3 py-3 text-base text-ink outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sky"
                   >
                     <option value="">Select a person…</option>
                     {people.map((p) => (
@@ -189,13 +189,13 @@ export default async function FilmCrewPage({
                   </select>
                 </div>
                 <div className="flex flex-col gap-1.5">
-                  <label className="text-xs font-medium uppercase tracking-wide text-ink-soft">
+                  <label className="text-sm font-medium uppercase tracking-wide text-ink-soft">
                     Role
                   </label>
                   <select
                     name="roleId"
                     required
-                    className="rounded-sm border border-line bg-paper px-3 py-2.5 text-sm text-ink outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sky"
+                    className="rounded-sm border border-line bg-paper px-3 py-3 text-base text-ink outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sky"
                   >
                     <option value="">Select a role…</option>
                     {roles.map((r) => (
@@ -212,7 +212,7 @@ export default async function FilmCrewPage({
                 <TextField label="Language pref" name="languagePref" placeholder="Malayalam" />
               </div>
               {people.length === 0 && (
-                <p className="text-xs text-ochre">
+                <p className="text-sm text-ochre">
                   No one in the people registry yet — add someone on the{" "}
                   <a href="/people" className="underline">
                     people page
@@ -222,7 +222,7 @@ export default async function FilmCrewPage({
               )}
               <SubmitButton
                 pendingText="Adding…"
-                className="mt-2 w-fit rounded-sm bg-verdigris px-5 py-2.5 text-sm font-semibold text-paper-raised transition-colors hover:bg-verdigris-ink"
+                className="mt-2 w-fit rounded-sm bg-verdigris px-5 py-3 text-base font-semibold text-paper-raised transition-colors hover:bg-verdigris-ink"
               >
                 Add to crew
               </SubmitButton>
@@ -247,7 +247,7 @@ function TextField({
     <div className="flex flex-col gap-1.5">
       <label
         htmlFor={name}
-        className="text-xs font-medium uppercase tracking-wide text-ink-soft"
+        className="text-sm font-medium uppercase tracking-wide text-ink-soft"
       >
         {label}
       </label>
@@ -255,7 +255,7 @@ function TextField({
         id={name}
         name={name}
         placeholder={placeholder}
-        className="rounded-sm border border-line bg-paper px-3 py-2.5 text-sm text-ink outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sky"
+        className="rounded-sm border border-line bg-paper px-3 py-3 text-base text-ink outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sky"
       />
     </div>
   );

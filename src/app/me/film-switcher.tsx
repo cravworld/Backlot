@@ -21,14 +21,14 @@ export function FilmSwitcher({
         <a
           key={f.filmId}
           href={`/me?film=${f.filmId}`}
-          className={`rounded-sm border px-3 py-2 text-left text-sm transition-colors ${
+          className={`rounded-sm border px-3 py-2.5 text-left text-base transition-colors ${
             f.filmId === selectedFilmId
               ? "border-verdigris bg-slate text-ink"
               : "border-line text-ink-soft hover:border-ink-soft"
           }`}
         >
           <div className="font-medium">{f.filmTitle}</div>
-          <div className="font-mono text-[11px] uppercase tracking-wide text-ink-soft">
+          <div className="font-mono text-xs uppercase tracking-wide text-ink-soft">
             {f.roleLabel} · {f.filmStatus}
           </div>
         </a>
