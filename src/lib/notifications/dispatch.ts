@@ -48,6 +48,26 @@ export async function dispatchNotification(input: DispatchInput) {
   if (!recipient) throw new Error("Recipient not found in this org.");
 
   if (recipient.isMinor && !input.allowMinorRecipient) {
+    // Per sign-off open question 9, the safe default should exist "from
+    // the moment the flag does" — that includes leaving a compliance
+    // trail. No NotificationMessage row exists to attach this to (the
+    // whole point is nothing was sent), so it's recorded against the
+    // recipient directly with a distinct "blocked" action, not "create"
+    // or "update", so it reads unambiguously as a rejected attempt rather
+    // than a message that went out.
+    await recordAuditEvent({
+      orgId: input.orgId,
+      filmId: input.filmId,
+      actorUserId: input.actorUserId,
+      action: "blocked",
+      entityType: "notification_message",
+      entityId: recipient.id,
+      after: {
+        channel: input.channel,
+        recipientPersonId: recipient.id,
+        reason: "minor_recipient_not_opted_in",
+      },
+    });
     throw new Error(
       `${recipient.fullName} is flagged as a minor and is excluded from distribution by ` +
         "default (sign-off open question 9). Pass allowMinorRecipient explicitly to override."
@@ -147,6 +167,18 @@ export async function dispatchNotification(input: DispatchInput) {
  * its input. actorType SYSTEM here is the audit log's first real use of
  * that enum value: these updates are provider-triggered, not a logged-in
  * user's action.
+ *
+ * KNOWN LIMITATION, not fixed here: this matches by providerMessageId +
+ * channel with no orgId scope. It's inert today (org_id is modelled
+ * everywhere per sign-off open question 1, but there is genuinely one
+ * org, and — separately — WHATSAPP_ACCESS_TOKEN/RESEND_API_KEY are single
+ * global env vars shared by the whole deployment, not per-org). A
+ * providerMessageId is attacker-supplyable on this unauthenticated route;
+ * once a second org exists, this needs either per-org provider
+ * credentials (so each org's webhook stream is actually separable) or
+ * per-org webhook URLs — an orgId filter alone on this query can't fix
+ * it, because nothing here currently knows which org a raw webhook POST
+ * belongs to. Flagging explicitly rather than leaving it silent.
  */
 export async function applyWebhookEvents(
   channel: NotificationChannel,

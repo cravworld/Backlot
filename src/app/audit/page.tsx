@@ -12,6 +12,7 @@ const ACTION_COLOR: Record<string, string> = {
   update: "var(--ochre)",
   delete: "var(--clay)",
   view: "var(--sky)",
+  blocked: "var(--clay)",
 };
 
 export default async function AuditPage() {
