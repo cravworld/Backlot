@@ -71,6 +71,9 @@ export default async function MePage({
                 <Link href="/audit" className="text-sm text-verdigris hover:underline">
                   Audit log
                 </Link>
+                <Link href="/notifications" className="text-sm text-verdigris hover:underline">
+                  Notifications
+                </Link>
               </>
             )}
             <LogoutButton />

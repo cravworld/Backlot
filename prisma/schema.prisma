@@ -18,6 +18,16 @@
 //   sign-off open question 5. Person.photoMediaId now lands as planned —
 //   the FK exists, but no photo-upload UI is built yet (out of scope for
 //   this component's pass; see phase-0 checklist).
+// Component 6 (Notification/dispatch service): NotificationTemplate,
+//   NotificationMessage. Provider-agnostic per phase-0-findings.md §1.5
+//   — see lib/notifications/. Real WhatsApp Cloud API + Resend adapters
+//   built against their documented shapes per sign-off open question 6
+//   ("build the adapter against the documented API shape regardless of
+//   approval status"), even though no live WhatsApp Business account or
+//   email provider is configured yet. The minors safe-default from
+//   sign-off open question 9 (opt-in only, not opt-out) is enforced here
+//   — this is the first component where Person.isMinor actually gates
+//   something.
 //
 // See phase-0-findings.md section 1 for the model this implements.
 
@@ -47,6 +57,8 @@ model Organization {
   people         Person[]
   auditEvents    AuditEvent[]
   mediaAssets    MediaAsset[]
+  notificationTemplates NotificationTemplate[]
+  notificationMessages  NotificationMessage[]
 
   @@map("organization")
 }
@@ -192,6 +204,7 @@ model Film {
   personRoles     PersonFilmRole[]
   auditEvents     AuditEvent[]
   mediaAssets     MediaAsset[]
+  notificationMessages NotificationMessage[]
 
   @@map("film")
 }
@@ -284,6 +297,7 @@ model Person {
   updatedAt      DateTime @updatedAt
 
   filmRoles PersonFilmRole[]
+  notificationMessages NotificationMessage[]
 
   @@map("person")
 }
@@ -425,4 +439,75 @@ model MediaAssetVersion {
 
   @@unique([mediaAssetId, versionNumber])
   @@map("media_asset_version")
+}
+
+// ---------------------------------------------------------------------------
+// Notification / dispatch service — schema-level, provider-agnostic per
+// phase-0-findings.md §1.5. No module (this one included) talks to a
+// WhatsApp or email SDK directly; everything routes through
+// lib/notifications/dispatch.ts, which enforces the minors safe-default
+// (sign-off open question 9) before any adapter is ever called.
+// Template *content* authoring is explicitly out of Phase 0 scope (see
+// findings doc's "not building" list) — templates are seeded, not
+// UI-managed.
+// ---------------------------------------------------------------------------
+
+enum NotificationChannel {
+  WHATSAPP
+  EMAIL
+}
+
+enum NotificationStatus {
+  QUEUED
+  SENT
+  DELIVERED
+  READ
+  FAILED
+}
+
+model NotificationTemplate {
+  id           String              @id @default(cuid())
+  orgId        String
+  org          Organization        @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  key          String
+  channel      NotificationChannel
+  language     String
+  // Email only — WhatsApp Cloud API messages have no separate subject line.
+  subject      String?
+  bodyTemplate String
+  createdAt    DateTime            @default(now())
+
+  messages NotificationMessage[]
+
+  @@unique([orgId, key, channel, language])
+  @@map("notification_template")
+}
+
+model NotificationMessage {
+  id                String               @id @default(cuid())
+  orgId             String
+  org               Organization         @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  filmId            String?
+  film              Film?                @relation(fields: [filmId], references: [id], onDelete: SetNull)
+  templateId        String?
+  template          NotificationTemplate? @relation(fields: [templateId], references: [id], onDelete: SetNull)
+  channel           NotificationChannel
+  recipientPersonId String?
+  recipientPerson   Person?              @relation(fields: [recipientPersonId], references: [id], onDelete: SetNull)
+  // The resolved phone/email actually dispatched to — kept out of
+  // AuditEvent payloads (PII), same discipline as media.ts excluding
+  // storage keys/encryption refs from its audit entries.
+  recipientContact  String
+  bodyRendered      String
+  status            NotificationStatus   @default(QUEUED)
+  providerMessageId String?
+  sentAt            DateTime?
+  deliveredAt       DateTime?
+  readAt            DateTime?
+  failedReason      String?
+  createdAt         DateTime             @default(now())
+
+  @@index([orgId, createdAt])
+  @@index([providerMessageId])
+  @@map("notification_message")
 }

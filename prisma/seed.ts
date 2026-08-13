@@ -209,6 +209,49 @@ async function main() {
     });
   }
 
+  // ---- Notification templates (seeded, not UI-authored — template
+  // *content* is explicitly out of Phase 0 scope per phase-0-findings.md's
+  // "not building" list; these exist only so the dispatch service has
+  // something real to render and send in the /notifications test screen).
+  await prisma.notificationTemplate.upsert({
+    where: {
+      orgId_key_channel_language: {
+        orgId: org.id,
+        key: "phase0_test",
+        channel: "WHATSAPP",
+        language: "en",
+      },
+    },
+    update: {},
+    create: {
+      orgId: org.id,
+      key: "phase0_test",
+      channel: "WHATSAPP",
+      language: "en",
+      bodyTemplate: "Hi {{name}}, this is a test notification from Backlot for {{filmTitle}}.",
+    },
+  });
+  await prisma.notificationTemplate.upsert({
+    where: {
+      orgId_key_channel_language: {
+        orgId: org.id,
+        key: "phase0_test",
+        channel: "EMAIL",
+        language: "en",
+      },
+    },
+    update: {},
+    create: {
+      orgId: org.id,
+      key: "phase0_test",
+      channel: "EMAIL",
+      language: "en",
+      subject: "Backlot test notification",
+      bodyTemplate:
+        "Hi {{name}},\n\nThis is a test notification from Backlot for {{filmTitle}}.\n\n— Sent via the Phase 0 notification/dispatch service.",
+    },
+  });
+
   console.log("Seed complete.");
   console.log(`  Org: ${org.name}`);
   console.log(`  Users (password for all: ${DEV_PASSWORD}):`);
