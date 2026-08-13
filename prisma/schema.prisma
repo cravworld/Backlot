@@ -7,13 +7,17 @@
 // Component 3 (People registry): Person, PersonFilmRole. Deliberately a
 //   separate concept from User/FilmAssignment — a junior artist needs a
 //   Person record to appear on a distribution list but will never log in.
-//   Person.photoMediaId is intentionally NOT here yet — it lands with the
-//   Document/media store component so we're not FK'ing to a table that
-//   doesn't exist.
 // Component 4 (Audit log): AuditEvent. Applies retroactively to every
 //   write in components 1-3 (see lib/audit.ts) — writes are always
 //   logged; reads are logged only for the sensitive cases identified in
 //   phase-0-findings.md open question 3 (Person contact-field views).
+// Component 5 (Document/media store): MediaAsset, MediaAssetVersion.
+//   Envelope encryption at rest (per-file DEK wrapped by an org master
+//   key, sign-off open question 4) — see lib/media.ts. Access events
+//   (view/download) feed AuditEvent rather than a bespoke log, per
+//   sign-off open question 5. Person.photoMediaId now lands as planned —
+//   the FK exists, but no photo-upload UI is built yet (out of scope for
+//   this component's pass; see phase-0 checklist).
 //
 // See phase-0-findings.md section 1 for the model this implements.
 
@@ -42,6 +46,7 @@ model Organization {
   films          Film[]
   people         Person[]
   auditEvents    AuditEvent[]
+  mediaAssets    MediaAsset[]
 
   @@map("organization")
 }
@@ -69,6 +74,8 @@ model User {
   // tracked in the People registry (most crew won't have a User at all).
   person          Person?
   auditEvents     AuditEvent[]
+  uploadedMediaAssets        MediaAsset[]
+  uploadedMediaAssetVersions MediaAssetVersion[]
 
   @@map("user")
 }
@@ -184,6 +191,7 @@ model Film {
   settings        FilmSettings[]
   personRoles     PersonFilmRole[]
   auditEvents     AuditEvent[]
+  mediaAssets     MediaAsset[]
 
   @@map("film")
 }
@@ -267,6 +275,11 @@ model Person {
   // platform access (e.g. a 1st AD is both a Person and a User).
   userId         String?  @unique
   user           User?    @relation(fields: [userId], references: [id])
+  // Lands with the Document/media store component, as flagged in that
+  // component's schema header comment. FK only — no photo-upload UI yet;
+  // building that is a separate pass so this one stays one upload surface.
+  photoMediaId   String?
+  photoMedia     MediaAsset? @relation("PersonPhoto", fields: [photoMediaId], references: [id], onDelete: SetNull)
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
 
@@ -336,4 +349,80 @@ model AuditEvent {
   @@index([orgId, entityType, entityId])
   @@index([orgId, createdAt])
   @@map("audit_event")
+}
+
+// ---------------------------------------------------------------------------
+// Document / media store — MediaAsset is the stable logical document
+// identity; MediaAssetVersion rows are immutable per-version blob records
+// (uploading again always inserts a new version, never edits one). Real
+// envelope encryption at rest: lib/media.ts generates a fresh per-file
+// data-encryption key, encrypts the file with it, then wraps that key with
+// an org master key from MEDIA_MASTER_KEY — encryptionKeyRef stores the
+// wrapped key, never a raw key. Access events (view/download) are not a
+// separate table; they write into AuditEvent like everything else, per
+// sign-off open question 5.
+// ---------------------------------------------------------------------------
+
+enum StorageProvider {
+  LOCAL
+  S3
+}
+
+model MediaAsset {
+  id               String   @id @default(cuid())
+  orgId            String
+  org              Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  // Nullable per phase-0-findings.md §1.4 (org-wide documents with no
+  // single film owner are legal), though every upload surface built so
+  // far always sets it — there's no org-wide upload screen yet.
+  filmId           String?
+  film             Film?    @relation(fields: [filmId], references: [id], onDelete: SetNull)
+  uploadedByUserId String
+  uploadedByUser   User     @relation(fields: [uploadedByUserId], references: [id])
+  // Display name for the logical document. Not in the original findings
+  // doc's column list for media_asset — added because a document store
+  // with no human-readable name isn't usable in a UI or a download's
+  // Content-Disposition header. Flagged as an assumption, not a silent
+  // schema drift.
+  filename         String
+  mimeType         String
+  currentVersionId String?  @unique
+  currentVersion   MediaAssetVersion? @relation("CurrentVersion", fields: [currentVersionId], references: [id], onDelete: SetNull)
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  versions       MediaAssetVersion[] @relation("AssetVersions")
+  personPhotoOf  Person[]            @relation("PersonPhoto")
+
+  @@map("media_asset")
+}
+
+model MediaAssetVersion {
+  id               String          @id @default(cuid())
+  mediaAssetId     String
+  mediaAsset       MediaAsset      @relation("AssetVersions", fields: [mediaAssetId], references: [id], onDelete: Cascade)
+  versionNumber    Int
+  storageProvider  StorageProvider @default(LOCAL)
+  // Opaque handle into local disk (storage/media/<storageKey>) or, later,
+  // an S3 object key — never a filesystem path the client controls.
+  storageKey       String
+  // Byte size and checksum are computed over the *plaintext*, not the
+  // ciphertext — this is a statement about the logical file's integrity,
+  // not the encrypted blob's.
+  byteSize         Int
+  checksumSha256   String
+  // Wrapped per-file DEK: base64(iv || authTag || AES-256-GCM(dek)),
+  // encrypted under MEDIA_MASTER_KEY. See lib/media.ts wrapKey/unwrapKey.
+  // Never store a raw DEK here.
+  encryptionKeyRef String
+  originalFilename String
+  uploadedByUserId String
+  uploadedByUser   User            @relation(fields: [uploadedByUserId], references: [id])
+  changeNote       String?
+  createdAt        DateTime        @default(now())
+
+  currentFor MediaAsset? @relation("CurrentVersion")
+
+  @@unique([mediaAssetId, versionNumber])
+  @@map("media_asset_version")
 }

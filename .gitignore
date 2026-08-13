@@ -30,3 +30,8 @@ next-env.d.ts
 
 # prisma
 /prisma/migrations/dev.db*
+
+# document/media store — encrypted blobs written to local disk in dev.
+# Never committed: this is exactly the "at rest" data envelope encryption
+# protects, and it has no business in git history even encrypted.
+/storage/

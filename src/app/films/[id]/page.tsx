@@ -74,6 +74,12 @@ export default async function FilmDetailPage({
           >
             Crew →
           </Link>
+          <Link
+            href={`/films/${film.id}/documents`}
+            className="text-sm text-verdigris hover:underline"
+          >
+            Documents →
+          </Link>
           {admin && (
             <Link
               href={`/films/${film.id}/assignments`}
