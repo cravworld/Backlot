@@ -29,6 +29,17 @@ export async function orchaLlmComplete(input: LlmCompleteInput): Promise<LlmComp
   if (!input.moduleKey.trim() || !input.purpose.trim() || !input.prompt.trim()) {
     throw new ActionError("moduleKey, purpose, and prompt are all required.");
   }
+  if (input.schema !== undefined) {
+    // Accepted by the interface contract (phase-0-findings.md §1.6) so
+    // Phase 1's SceneSpine extraction calls don't require a signature
+    // change — but structured output isn't implemented yet. Rejecting
+    // loudly here beats silently returning unstructured text against a
+    // caller that asked for a schema; that's exactly the kind of gap this
+    // component exists to catch before Phase 1, not after.
+    throw new ActionError(
+      "Structured output (schema) is accepted by the interface but not implemented yet in Phase 0."
+    );
+  }
 
   const promptHash = hashText(input.prompt);
 

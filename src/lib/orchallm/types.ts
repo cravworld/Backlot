@@ -17,7 +17,12 @@ export type LlmCompleteInput = {
   prompt: string;
   /** If true, only a zero-retention-registered provider may handle this call. */
   sensitive?: boolean;
-  /** Accepted per the interface contract; Phase 0 doesn't do anything with it yet — no module needs structured extraction until SceneSpine (Phase 1). */
+  /**
+   * Accepted per the interface contract so a future caller's signature
+   * doesn't have to change — but NOT implemented in Phase 0.
+   * orchaLlmComplete throws if this is passed, rather than silently
+   * returning unstructured text against a schema-expecting caller.
+   */
   schema?: unknown;
 };
 
