@@ -108,6 +108,22 @@ export default async function MePage({
           ) : (
             <FilmSwitcher films={films} selectedFilmId={selectedFilmId} />
           )}
+          {/* This page verifies RBAC resolution, not navigation — but
+              until Step 4's real nav rail exists, this is the ONLY click
+              path into a film's own pages for a non-admin user. Without
+              it, someone without org-admin access has no way to reach
+              /films/[id] (or crew/documents beneath it) except by typing
+              the URL directly. */}
+          {selectedFilm && (
+            <p className="mt-3">
+              <Link
+                href={`/films/${selectedFilm.filmId}`}
+                className="text-sm text-verdigris hover:underline"
+              >
+                Open {selectedFilm.filmTitle} →
+              </Link>
+            </p>
+          )}
         </section>
 
         {selectedFilm && (
