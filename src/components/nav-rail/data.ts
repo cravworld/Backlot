@@ -23,10 +23,17 @@ export async function getNavRailData(userId: string, orgId: string): Promise<Nav
   const moduleTabs: RailTab[] = currentFilm
     ? navModules.map((key) => {
         const meta = MODULE_CATALOG[key];
+        // callsheet_ops (Phase 1) has real screens now — every other
+        // module key still resolves to the generic permission-checked
+        // placeholder until its own phase lands.
+        const href =
+          key === "callsheet_ops"
+            ? `/films/${currentFilm.filmId}/callsheet-ops`
+            : `/films/${currentFilm.filmId}/modules/${key}`;
         return {
-          href: `/films/${currentFilm.filmId}/modules/${key}`,
+          href,
           label: meta?.label ?? key,
-          sub: meta?.restricted ? "Restricted" : "Not built yet",
+          sub: meta?.restricted ? "Restricted" : key === "callsheet_ops" ? undefined : "Not built yet",
           restricted: meta?.restricted,
           kind: "module" as const,
         };
