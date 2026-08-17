@@ -33,7 +33,14 @@ export default async function ShootingDayPage({
   searchParams,
 }: {
   params: { id: string; dayId: string };
-  searchParams: { saved?: string; error?: string; sent?: string; failed?: string; skipped?: string };
+  searchParams: {
+    saved?: string;
+    error?: string;
+    sent?: string;
+    failed?: string;
+    skipped?: string;
+    omittedMinors?: string;
+  };
 }) {
   const session = await getServerSession(authOptions);
   if (!session) redirect("/login");
@@ -83,6 +90,7 @@ export default async function ShootingDayPage({
 
   const dpr = day.dprs[0] ?? null;
   const latestVersion = day.callSheetVersions[0] ?? null;
+  const minorCallTimes = day.callTimes.filter((c) => c.person?.isMinor);
 
   const crew = await prisma.personFilmRole.findMany({
     where: { filmId: film.id },
@@ -149,6 +157,12 @@ export default async function ShootingDayPage({
           <SavedBanner
             show
             label={`Dispatch complete — sent ${searchParams.sent}, failed ${searchParams.failed}, already dispatched ${searchParams.skipped}.`}
+          />
+        )}
+        {searchParams.omittedMinors && (
+          <SavedBanner
+            show
+            label={`Published — ${searchParams.omittedMinors} minor(s) omitted from the PDF by default (opt-in to include).`}
           />
         )}
         <ErrorBanner message={searchParams.error} />
@@ -326,16 +340,37 @@ export default async function ShootingDayPage({
             </div>
           )}
           {canEdit && (
-            <form action={boundPublish} className="flex flex-wrap items-end gap-3">
-              {day.callSheetVersions.length > 0 && (
-                <div className="flex flex-col gap-1.5">
-                  <label className={labelClass}>Change note (required for amendments)</label>
-                  <input name="changeNote" placeholder="e.g. Rain call — location moved" className={inputClass} />
+            <form action={boundPublish} className="flex flex-col gap-3">
+              {minorCallTimes.length > 0 && (
+                <div className="rounded-sm border border-line bg-slate p-3">
+                  <p className="mb-2 text-sm text-ink-soft">
+                    Minors are omitted from the call sheet PDF by default — the same opt-in-not-
+                    opt-out rule as WhatsApp dispatch, applied to the document itself (a minor's
+                    name/call time printed in a PDF that gets forwarded or left on a dashboard
+                    isn&apos;t protected by dispatch-exclusion alone). Check to include a minor in
+                    this specific version if the production genuinely needs it.
+                  </p>
+                  <div className="flex flex-wrap gap-3">
+                    {minorCallTimes.map((c) => (
+                      <label key={c.id} className="flex items-center gap-1.5 text-sm">
+                        <input type="checkbox" name="includeMinorCallTimeIds" value={c.id} />
+                        Include {c.person?.fullName} ({fmtTime(c.callTime)})
+                      </label>
+                    ))}
+                  </div>
                 </div>
               )}
-              <SubmitButton pendingText="Generating…" className={buttonClass}>
-                {latestVersion ? "Publish amended call sheet" : "Publish call sheet"}
-              </SubmitButton>
+              <div className="flex flex-wrap items-end gap-3">
+                {day.callSheetVersions.length > 0 && (
+                  <div className="flex flex-col gap-1.5">
+                    <label className={labelClass}>Change note (required for amendments)</label>
+                    <input name="changeNote" placeholder="e.g. Rain call — location moved" className={inputClass} />
+                  </div>
+                )}
+                <SubmitButton pendingText="Generating…" className={buttonClass}>
+                  {latestVersion ? "Publish amended call sheet" : "Publish call sheet"}
+                </SubmitButton>
+              </div>
             </form>
           )}
         </section>

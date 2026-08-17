@@ -225,6 +225,23 @@ export async function publishCallSheet(dayId: string, filmId: string, formData: 
       throw new ActionError("A change note is required for an amended call sheet (version 2+).");
     }
 
+    // Minors are omitted from the call sheet PDF by default — the same
+    // opt-in-not-opt-out posture as dispatch.ts's minor-recipient block
+    // (Phase 0 sign-off open question 9), applied to a second exposure
+    // that block doesn't cover. Dispatch-exclusion only controls who
+    // *receives* the document; a minor's name/role/call time printed
+    // inside a PDF that then gets forwarded, photographed, or left on a
+    // dashboard isn't protected by that at all — it's the same
+    // information walking out a different door. Kept as one consistent
+    // rule (opt-in per publish, explicit, by whoever already holds
+    // publish/edit capability) rather than a second, differently-shaped
+    // judgment call. See phase-1-findings.md open question (i).
+    const includeMinorCallTimeIds = new Set(formData.getAll("includeMinorCallTimeIds").map(String));
+    const includedCallTimes = day.callTimes.filter(
+      (c) => !c.person?.isMinor || includeMinorCallTimeIds.has(c.id)
+    );
+    const omittedMinorCount = day.callTimes.length - includedCallTimes.length;
+
     const pdfBuffer = await renderCallSheetPdf({
       filmTitle: film.title,
       shootDate: day.shootDate,
@@ -242,7 +259,7 @@ export async function publishCallSheet(dayId: string, filmId: string, formData: 
         plannedEighths: s.plannedEighths,
         sortOrder: s.sortOrder,
       })),
-      callTimes: day.callTimes.map((c) => ({
+      callTimes: includedCallTimes.map((c) => ({
         label: c.person?.fullName ?? c.departmentLabel ?? "—",
         callTime: c.callTime,
       })),
@@ -295,11 +312,19 @@ export async function publishCallSheet(dayId: string, filmId: string, formData: 
       action: "create",
       entityType: "call_sheet_version",
       entityId: version.id,
-      after: { shootingDayId: dayId, versionNumber, changeNote },
+      after: {
+        shootingDayId: dayId,
+        versionNumber,
+        changeNote,
+        omittedMinorCount,
+        includedMinorCallTimeIds: [...includeMinorCallTimeIds],
+      },
     });
 
     revalidatePath(`/films/${filmId}/callsheet-ops/${dayId}`);
-    redirect(`/films/${filmId}/callsheet-ops/${dayId}?saved=1`);
+    redirect(
+      `/films/${filmId}/callsheet-ops/${dayId}?saved=1${omittedMinorCount > 0 ? `&omittedMinors=${omittedMinorCount}` : ""}`
+    );
   } catch (err) {
     if (err instanceof ActionError) {
       redirect(`/films/${filmId}/callsheet-ops/${dayId}?error=${encodeURIComponent(err.message)}`);
