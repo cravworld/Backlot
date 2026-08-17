@@ -21,6 +21,17 @@ const nextConfig = {
     serverActions: {
       bodySizeLimit: "20mb",
     },
+    // Vercel's serverless build only bundles files it can trace through
+    // static imports/requires — a font read via fs.readFileSync(path...)
+    // for the bilingual call sheet PDF (lib/pdf/call-sheet-pdf.tsx) isn't
+    // reliably picked up by that tracing on its own. Without this, the
+    // Malayalam font works in local dev (real filesystem, no tracing step)
+    // and then 404s/ENOENTs in production — exactly the "worked in
+    // testing, broke in prod" gap this project has hit before. Scoped to
+    // the one route that actually renders a PDF, not every route.
+    outputFileTracingIncludes: {
+      "/films/[id]/callsheet-ops/[dayId]": ["./src/lib/pdf/fonts/**"],
+    },
   },
 };
 
