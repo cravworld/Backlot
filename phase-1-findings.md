@@ -80,4 +80,16 @@ No scheduling engine. No payroll or timesheet-to-payment. No cast contact direct
 
 ---
 
-Waiting on your sign-off (especially a–e, which affect the schema/adapter shape directly) before writing any code.
+## 6. Sign-off (2026-08-17)
+
+**a. Acknowledgment mechanism — decided: no interactive buttons in v1.** Ships as a plain-text WhatsApp message containing a unique tokenized link to a lightweight, no-login web acknowledgment page ("I've seen this," one tap). Reuses the existing adapter's plain-text send and delivery-status webhook as-is — zero new inbound webhook parsing. Reasoning: interactive buttons need their own separate template approval on top of the one already pending for (b), so building that path now means nothing can go live until *two* Meta approvals land instead of one. The link works the moment basic WhatsApp send works; interactive buttons are a real phase-2 upgrade once the link flow's real-world performance is known, not a guess made now. Schema implication: `call_sheet_dispatch.ackToken` is that token — unique, unguessable, scoped to exactly one recipient's one version so it can't be replayed against anyone else's acknowledgment.
+
+**b. WhatsApp Business API status.** Confirmed standing blocker — application stays in motion in parallel with everything else, independent of code progress.
+
+**c. Bilingual rendering — confirmed:** static, pre-authored Malayalam templates, not live translation. Call times and locations are exactly the field type where a translation error is a safety issue, not a UX rough edge — not a place to spend OrchaLLM cycles.
+
+**d. PDF library — confirmed:** `@react-pdf/renderer` over Puppeteer, the right call for a serverless deploy target.
+
+**e. Variance/working-hours access tier — confirmed, as a distinct capability:** `callsheet_ops:view_variance`, separate from the module's general `view`, granted to the producer, production leadership, and whichever compliance role exists — not something every CallSheet Ops viewer gets by default. **This is the direct product consequence of the Hema Committee compliance point** flagged in `backlot-pass2-deep-dive.md` §2.6 — a system that produces an auditable record of *actual* working hours (call/wrap times, overtime by department) is genuinely valuable to the company's compliance position specifically because that record is restricted from casual/general access, not broadcast alongside the ordinary "did we finish our scenes today" view. Recording that connection here so it isn't lost if someone revisits the permission grid later without this context.
+
+**Built against this sign-off:** `prisma/schema.prisma` (ShootingDay/ShootingDayScene/ShootingDayCallTime, CallSheetVersion/CallSheetDispatch with `ackToken`, DailyProductionReport/DprSceneResult/DprOvertimeEntry — migration `20260817060353_callsheet_ops`), the S3 branch of `lib/media.ts` (Supabase Storage, `@aws-sdk/client-s3`, auto-selected when `SUPABASE_S3_*` env vars are configured, local disk otherwise), and `callsheet_ops:view_variance` seeded onto a new `producer` role plus the existing `first_ad` role in `prisma/seed.ts`. Not yet built: the acknowledgment web page itself, call sheet generation/PDF rendering, the DPR form, and the variance summary view — those are the next slices.

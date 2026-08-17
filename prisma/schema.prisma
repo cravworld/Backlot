@@ -37,6 +37,19 @@
 //   the Phase 0 test screen, not just the schema.
 //
 // See phase-0-findings.md section 1 for the model this implements.
+//
+// Phase 1 (CallSheet Ops): ShootingDay/ShootingDayScene/ShootingDayCallTime
+//   (the plan), CallSheetVersion/CallSheetDispatch (the artefact + per-
+//   recipient acknowledgment), DailyProductionReport/DprSceneResult/
+//   DprOvertimeEntry (the return path). Variance is a computed query
+//   against ShootingDayScene + DprSceneResult, never a stored column — see
+//   phase-1-findings.md. Acknowledgment ships as a tokenized web link in a
+//   plain-text WhatsApp message (sign-off answer a) — no interactive
+//   buttons, no new inbound webhook parsing, reuses the existing
+//   whatsapp-adapter.ts send path and delivery-status webhook as-is.
+//   CallSheetDispatch.ackToken is that link's token: unique, unguessable,
+//   and scoped to exactly one recipient's one version, so it can't be
+//   replayed against anyone else's acknowledgment.
 
 generator client {
   provider = "prisma-client-js"
@@ -57,16 +70,17 @@ model Organization {
   name      String
   createdAt DateTime @default(now())
 
-  users          User[]
-  orgMemberships OrgMembership[]
-  roles          Role[]
-  films          Film[]
-  people         Person[]
-  auditEvents    AuditEvent[]
-  mediaAssets    MediaAsset[]
+  users                 User[]
+  orgMemberships        OrgMembership[]
+  roles                 Role[]
+  films                 Film[]
+  people                Person[]
+  auditEvents           AuditEvent[]
+  mediaAssets           MediaAsset[]
   notificationTemplates NotificationTemplate[]
   notificationMessages  NotificationMessage[]
   llmRequestLogs        LlmRequestLog[]
+  shootingDays          ShootingDay[]
 
   @@map("organization")
 }
@@ -77,26 +91,29 @@ enum UserStatus {
 }
 
 model User {
-  id           String     @id @default(cuid())
+  id           String       @id @default(cuid())
   orgId        String
   org          Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
-  email        String     @unique
+  email        String       @unique
   passwordHash String
   name         String
   phone        String?
-  status       UserStatus @default(ACTIVE)
-  createdAt    DateTime   @default(now())
-  updatedAt    DateTime   @updatedAt
+  status       UserStatus   @default(ACTIVE)
+  createdAt    DateTime     @default(now())
+  updatedAt    DateTime     @updatedAt
 
-  orgMemberships  OrgMembership[]
-  filmAssignments FilmAssignment[]
+  orgMemberships             OrgMembership[]
+  filmAssignments            FilmAssignment[]
   // Optional 1:1 — set only when this login also corresponds to a human
   // tracked in the People registry (most crew won't have a User at all).
-  person          Person?
-  auditEvents     AuditEvent[]
+  person                     Person?
+  auditEvents                AuditEvent[]
   uploadedMediaAssets        MediaAsset[]
   uploadedMediaAssetVersions MediaAssetVersion[]
   llmRequestLogs             LlmRequestLog[]
+  createdShootingDays        ShootingDay[]
+  publishedCallSheetVersions CallSheetVersion[]
+  submittedDprs              DailyProductionReport[]
 
   @@map("user")
 }
@@ -110,13 +127,13 @@ enum OrgRole {
 // Org-level power: create films, manage the role catalog, manage the
 // role_permission grid. Independent of any single film.
 model OrgMembership {
-  id        String   @id @default(cuid())
+  id        String       @id @default(cuid())
   orgId     String
   org       Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
   userId    String
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user      User         @relation(fields: [userId], references: [id], onDelete: Cascade)
   orgRole   OrgRole
-  createdAt DateTime @default(now())
+  createdAt DateTime     @default(now())
 
   @@unique([orgId, userId])
   @@map("org_membership")
@@ -129,13 +146,13 @@ model OrgMembership {
 // Org-scoped, user-editable catalog of role types ("1st AD", "Location
 // Manager", ...). Not hardcoded — a company will have idiosyncratic titles.
 model Role {
-  id          String   @id @default(cuid())
+  id          String       @id @default(cuid())
   orgId       String
   org         Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
   key         String
   label       String
   description String?
-  createdAt   DateTime @default(now())
+  createdAt   DateTime     @default(now())
 
   permissions     RolePermission[]
   fieldAccess     RoleFieldAccess[]
@@ -196,25 +213,26 @@ enum FilmStatus {
 }
 
 model Film {
-  id              String     @id @default(cuid())
+  id              String       @id @default(cuid())
   orgId           String
   org             Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
   title           String
   workingTitle    String?
-  status          FilmStatus @default(PREP)
+  status          FilmStatus   @default(PREP)
   startDate       DateTime?
   endDate         DateTime?
   primaryLanguage String?
-  createdAt       DateTime   @default(now())
-  updatedAt       DateTime   @updatedAt
+  createdAt       DateTime     @default(now())
+  updatedAt       DateTime     @updatedAt
 
-  filmAssignments FilmAssignment[]
-  settings        FilmSettings[]
-  personRoles     PersonFilmRole[]
-  auditEvents     AuditEvent[]
-  mediaAssets     MediaAsset[]
+  filmAssignments      FilmAssignment[]
+  settings             FilmSettings[]
+  personRoles          PersonFilmRole[]
+  auditEvents          AuditEvent[]
+  mediaAssets          MediaAsset[]
   notificationMessages NotificationMessage[]
-  llmRequestLogs  LlmRequestLog[]
+  llmRequestLogs       LlmRequestLog[]
+  shootingDays         ShootingDay[]
 
   @@map("film")
 }
@@ -275,7 +293,7 @@ model FilmAssignment {
 // ---------------------------------------------------------------------------
 
 model Person {
-  id             String   @id @default(cuid())
+  id             String       @id @default(cuid())
   orgId          String
   org            Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
   fullName       String
@@ -292,22 +310,24 @@ model Person {
   // rule (opt-in, not opt-out, once that feature exists) is recorded in
   // phase-0-findings.md open question 9. This flag exists now so the data
   // is captured from day one rather than retrofitted.
-  isMinor        Boolean  @default(false)
+  isMinor        Boolean      @default(false)
   notes          String?
   // Optional link to a login — set only when this person also has
   // platform access (e.g. a 1st AD is both a Person and a User).
-  userId         String?  @unique
-  user           User?    @relation(fields: [userId], references: [id])
+  userId         String?      @unique
+  user           User?        @relation(fields: [userId], references: [id])
   // Lands with the Document/media store component, as flagged in that
   // component's schema header comment. FK only — no photo-upload UI yet;
   // building that is a separate pass so this one stays one upload surface.
   photoMediaId   String?
-  photoMedia     MediaAsset? @relation("PersonPhoto", fields: [photoMediaId], references: [id], onDelete: SetNull)
-  createdAt      DateTime @default(now())
-  updatedAt      DateTime @updatedAt
+  photoMedia     MediaAsset?  @relation("PersonPhoto", fields: [photoMediaId], references: [id], onDelete: SetNull)
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
 
-  filmRoles PersonFilmRole[]
+  filmRoles            PersonFilmRole[]
   notificationMessages NotificationMessage[]
+  shootingDayCallTimes ShootingDayCallTime[]
+  callSheetDispatches  CallSheetDispatch[]
 
   @@map("person")
 }
@@ -393,16 +413,16 @@ enum StorageProvider {
 }
 
 model MediaAsset {
-  id               String   @id @default(cuid())
+  id               String             @id @default(cuid())
   orgId            String
-  org              Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  org              Organization       @relation(fields: [orgId], references: [id], onDelete: Cascade)
   // Nullable per phase-0-findings.md §1.4 (org-wide documents with no
   // single film owner are legal), though every upload surface built so
   // far always sets it — there's no org-wide upload screen yet.
   filmId           String?
-  film             Film?    @relation(fields: [filmId], references: [id], onDelete: SetNull)
+  film             Film?              @relation(fields: [filmId], references: [id], onDelete: SetNull)
   uploadedByUserId String
-  uploadedByUser   User     @relation(fields: [uploadedByUserId], references: [id])
+  uploadedByUser   User               @relation(fields: [uploadedByUserId], references: [id])
   // Display name for the logical document. Not in the original findings
   // doc's column list for media_asset — added because a document store
   // with no human-readable name isn't usable in a UI or a download's
@@ -410,13 +430,14 @@ model MediaAsset {
   // schema drift.
   filename         String
   mimeType         String
-  currentVersionId String?  @unique
+  currentVersionId String?            @unique
   currentVersion   MediaAssetVersion? @relation("CurrentVersion", fields: [currentVersionId], references: [id], onDelete: SetNull)
-  createdAt        DateTime @default(now())
-  updatedAt        DateTime @updatedAt
+  createdAt        DateTime           @default(now())
+  updatedAt        DateTime           @updatedAt
 
-  versions       MediaAssetVersion[] @relation("AssetVersions")
-  personPhotoOf  Person[]            @relation("PersonPhoto")
+  versions           MediaAssetVersion[] @relation("AssetVersions")
+  personPhotoOf      Person[]            @relation("PersonPhoto")
+  callSheetVersionOf CallSheetVersion[]
 
   @@map("media_asset")
 }
@@ -494,28 +515,30 @@ model NotificationTemplate {
 }
 
 model NotificationMessage {
-  id                String               @id @default(cuid())
+  id                String                @id @default(cuid())
   orgId             String
-  org               Organization         @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  org               Organization          @relation(fields: [orgId], references: [id], onDelete: Cascade)
   filmId            String?
-  film              Film?                @relation(fields: [filmId], references: [id], onDelete: SetNull)
+  film              Film?                 @relation(fields: [filmId], references: [id], onDelete: SetNull)
   templateId        String?
   template          NotificationTemplate? @relation(fields: [templateId], references: [id], onDelete: SetNull)
   channel           NotificationChannel
   recipientPersonId String?
-  recipientPerson   Person?              @relation(fields: [recipientPersonId], references: [id], onDelete: SetNull)
+  recipientPerson   Person?               @relation(fields: [recipientPersonId], references: [id], onDelete: SetNull)
   // The resolved phone/email actually dispatched to — kept out of
   // AuditEvent payloads (PII), same discipline as media.ts excluding
   // storage keys/encryption refs from its audit entries.
   recipientContact  String
   bodyRendered      String
-  status            NotificationStatus   @default(QUEUED)
+  status            NotificationStatus    @default(QUEUED)
   providerMessageId String?
   sentAt            DateTime?
   deliveredAt       DateTime?
   readAt            DateTime?
   failedReason      String?
-  createdAt         DateTime             @default(now())
+  createdAt         DateTime              @default(now())
+
+  callSheetDispatchOf CallSheetDispatch?
 
   @@index([orgId, createdAt])
   @@index([providerMessageId])
@@ -551,13 +574,13 @@ model LlmProvider {
 }
 
 model LlmRequestLog {
-  id                String   @id @default(cuid())
+  id                String       @id @default(cuid())
   orgId             String
   org               Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
   filmId            String?
-  film              Film?    @relation(fields: [filmId], references: [id], onDelete: SetNull)
+  film              Film?        @relation(fields: [filmId], references: [id], onDelete: SetNull)
   requestedByUserId String?
-  requestedByUser   User?    @relation(fields: [requestedByUserId], references: [id], onDelete: SetNull)
+  requestedByUser   User?        @relation(fields: [requestedByUserId], references: [id], onDelete: SetNull)
   moduleKey         String
   purpose           String
   // Plain string, not a relation to LlmProvider — a request that was
@@ -569,14 +592,209 @@ model LlmRequestLog {
   responseHash      String?
   tokenCountIn      Int?
   tokenCountOut     Int?
-  zeroRetentionUsed Boolean  @default(false)
+  zeroRetentionUsed Boolean      @default(false)
   // Free string, not an enum — same reasoning as AuditEvent.action:
   // "ok" | "refused" | "failed" today, new outcomes shouldn't need a
   // migration.
   status            String
   failedReason      String?
-  createdAt         DateTime @default(now())
+  createdAt         DateTime     @default(now())
 
   @@index([orgId, createdAt])
   @@map("llm_request_log")
+}
+
+// ---------------------------------------------------------------------------
+// Component 8 (CallSheet Ops, Phase 1) — see phase-1-findings.md.
+// ShootingDay is the plan; CallSheetVersion/CallSheetDispatch is the
+// generated artefact and its per-recipient send+ack state;
+// DailyProductionReport is the return path. Variance (planned vs. actual
+// scenes/pages, cumulative schedule position) is deliberately NOT modelled
+// here — it's a live query across ShootingDayScene + DprSceneResult, same
+// posture as nav module resolution: computed at read time, never cached.
+// ---------------------------------------------------------------------------
+
+enum ShootingDayStatus {
+  DRAFT
+  PUBLISHED
+}
+
+model ShootingDay {
+  id              String            @id @default(cuid())
+  orgId           String
+  org             Organization      @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  filmId          String
+  film            Film              @relation(fields: [filmId], references: [id], onDelete: Cascade)
+  shootDate       DateTime
+  unitCallTime    DateTime?
+  locationLabel   String?
+  locationNote    String?
+  sunriseTime     DateTime?
+  sunsetTime      DateTime?
+  weatherNote     String?
+  hospitalContact String?
+  // Mandatory, non-removable per the deep-dive's Hema Committee point —
+  // rendered on every call sheet PDF regardless of recipient role. Nullable
+  // here only because a DRAFT day may not have it filled in yet; the PDF
+  // generator refuses to render a PUBLISHED day without one (enforced in
+  // application code, not the schema, same as other "required at the right
+  // lifecycle stage" fields elsewhere in this app).
+  safetyNote      String?
+  status          ShootingDayStatus @default(DRAFT)
+  createdByUserId String
+  createdByUser   User              @relation(fields: [createdByUserId], references: [id])
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime          @updatedAt
+
+  scenes            ShootingDayScene[]
+  callTimes         ShootingDayCallTime[]
+  callSheetVersions CallSheetVersion[]
+  dprs              DailyProductionReport[]
+
+  @@unique([filmId, shootDate])
+  @@map("shooting_day")
+}
+
+// Manual entry today, per the deep-dive's required fallback — sceneSpineId
+// is a plain string with no FK because SceneSpine doesn't exist yet
+// (phase-1-findings.md open question g). Becomes a real relation once it
+// does; that's a migration, not a redesign.
+model ShootingDayScene {
+  id             String      @id @default(cuid())
+  shootingDayId  String
+  shootingDay    ShootingDay @relation(fields: [shootingDayId], references: [id], onDelete: Cascade)
+  sceneSpineId   String?
+  sceneLabel     String
+  // Stored in eighths — the industry's actual page-count unit — rather
+  // than a float, so "2 3/8 pages" is exact (19), not a rounding hazard.
+  plannedEighths Int
+  sortOrder      Int
+  createdAt      DateTime    @default(now())
+
+  dprResults DprSceneResult[]
+
+  @@map("shooting_day_scene")
+}
+
+// Covers both cast call times per actor and department call times with one
+// table rather than two near-identical ones — exactly one of personId /
+// departmentLabel is set, enforced in application code (Prisma has no
+// portable CHECK-constraint syntax across providers worth relying on here).
+model ShootingDayCallTime {
+  id              String      @id @default(cuid())
+  shootingDayId   String
+  shootingDay     ShootingDay @relation(fields: [shootingDayId], references: [id], onDelete: Cascade)
+  personId        String?
+  person          Person?     @relation(fields: [personId], references: [id], onDelete: Cascade)
+  departmentLabel String?
+  callTime        DateTime
+  createdAt       DateTime    @default(now())
+
+  @@map("shooting_day_call_time")
+}
+
+// Immutable per version, like MediaAssetVersion — a new version supersedes
+// and re-triggers acknowledgment for every recipient (the amendment rule),
+// it never edits a prior version's dispatch state in place.
+model CallSheetVersion {
+  id                String      @id @default(cuid())
+  shootingDayId     String
+  shootingDay       ShootingDay @relation(fields: [shootingDayId], references: [id], onDelete: Cascade)
+  versionNumber     Int
+  pdfMediaAssetId   String
+  pdfMediaAsset     MediaAsset  @relation(fields: [pdfMediaAssetId], references: [id])
+  // Required on amendments (version > 1) — enforced in application code.
+  // "Rain call", "location moved" — the human-readable reason a revised
+  // call sheet went out, distinct from the version number itself.
+  changeNote        String?
+  publishedByUserId String
+  publishedByUser   User        @relation(fields: [publishedByUserId], references: [id])
+  publishedAt       DateTime    @default(now())
+
+  dispatches CallSheetDispatch[]
+
+  @@unique([shootingDayId, versionNumber])
+  @@map("call_sheet_version")
+}
+
+// One row per recipient per version. Acknowledgment ships as a tokenized
+// link in a plain-text WhatsApp message (sign-off answer a) — no
+// interactive buttons, no new inbound webhook parsing. ackToken is
+// unguessable and scoped to exactly this recipient's exactly this version,
+// so the link can't be replayed against anyone else's acknowledgment or an
+// earlier/later version. notificationMessageId links to the existing
+// dispatch/delivery-status machinery in lib/notifications/dispatch.ts —
+// this table only adds the module-specific "did they tap the link" state
+// dispatch.ts's own header comment says a module should layer on top.
+model CallSheetDispatch {
+  id                    String               @id @default(cuid())
+  callSheetVersionId    String
+  callSheetVersion      CallSheetVersion     @relation(fields: [callSheetVersionId], references: [id], onDelete: Cascade)
+  personId              String
+  person                Person               @relation(fields: [personId], references: [id], onDelete: Cascade)
+  notificationMessageId String?              @unique
+  notificationMessage   NotificationMessage? @relation(fields: [notificationMessageId], references: [id], onDelete: SetNull)
+  ackToken              String               @unique
+  acknowledgedAt        DateTime?
+  createdAt             DateTime             @default(now())
+
+  @@unique([callSheetVersionId, personId])
+  @@map("call_sheet_dispatch")
+}
+
+enum DprSceneStatus {
+  COMPLETED
+  PARTIAL
+  DROPPED
+}
+
+model DailyProductionReport {
+  id                  String      @id @default(cuid())
+  shootingDayId       String
+  shootingDay         ShootingDay @relation(fields: [shootingDayId], references: [id], onDelete: Cascade)
+  submittedByUserId   String
+  submittedByUser     User        @relation(fields: [submittedByUserId], references: [id])
+  submittedAt         DateTime    @default(now())
+  actualCallTime      DateTime?
+  actualWrapTime      DateTime?
+  cateringBreakfast   Int?
+  cateringLunch       Int?
+  cateringDinner      Int?
+  juniorArtistPlanned Int?
+  juniorArtistActual  Int?
+  incidentsNote       String?
+  equipmentIssuesNote String?
+
+  sceneResults    DprSceneResult[]
+  overtimeEntries DprOvertimeEntry[]
+
+  // One DPR per shooting day — resubmission edits the existing report
+  // rather than creating a second one, so "same-day DPR filed" (a Phase 1
+  // success metric) stays an unambiguous yes/no per day.
+  @@unique([shootingDayId])
+  @@map("daily_production_report")
+}
+
+model DprSceneResult {
+  id                 String                @id @default(cuid())
+  dprId              String
+  dpr                DailyProductionReport @relation(fields: [dprId], references: [id], onDelete: Cascade)
+  shootingDaySceneId String
+  shootingDayScene   ShootingDayScene      @relation(fields: [shootingDaySceneId], references: [id], onDelete: Cascade)
+  status             DprSceneStatus
+  pagesShotEighths   Int?
+
+  @@unique([dprId, shootingDaySceneId])
+  @@map("dpr_scene_result")
+}
+
+model DprOvertimeEntry {
+  id              String                @id @default(cuid())
+  dprId           String
+  dpr             DailyProductionReport @relation(fields: [dprId], references: [id], onDelete: Cascade)
+  departmentLabel String
+  overtimeMinutes Int
+  createdAt       DateTime              @default(now())
+
+  @@map("dpr_overtime_entry")
 }

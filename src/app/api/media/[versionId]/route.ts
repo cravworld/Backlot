@@ -57,7 +57,7 @@ export async function GET(
 
   let plaintext: Buffer;
   try {
-    plaintext = await readMediaFile(version.storageKey, version.encryptionKeyRef);
+    plaintext = await readMediaFile(version.storageProvider, version.storageKey, version.encryptionKeyRef);
   } catch (err) {
     // Surface as 500, not a silent empty download — a decrypt/read failure
     // here means the blob or key material is missing or corrupt.

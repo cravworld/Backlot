@@ -35,3 +35,6 @@ next-env.d.ts
 # Never committed: this is exactly the "at rest" data envelope encryption
 # protects, and it has no business in git history even encrypted.
 /storage/
+
+.vercel
+.env*

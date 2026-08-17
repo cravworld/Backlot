@@ -61,7 +61,7 @@ export async function uploadDocument(filmId: string, formData: FormData) {
         versions: {
           create: {
             versionNumber: 1,
-            storageProvider: "LOCAL",
+            storageProvider: stored.storageProvider,
             storageKey: stored.storageKey,
             byteSize: stored.byteSize,
             checksumSha256: stored.checksumSha256,
@@ -129,7 +129,7 @@ export async function uploadNewVersion(assetId: string, filmId: string, formData
       data: {
         mediaAssetId: asset.id,
         versionNumber: nextVersionNumber,
-        storageProvider: "LOCAL",
+        storageProvider: stored.storageProvider,
         storageKey: stored.storageKey,
         byteSize: stored.byteSize,
         checksumSha256: stored.checksumSha256,
@@ -190,7 +190,7 @@ export async function deleteDocument(assetId: string, filmId: string) {
     // Remove ciphertext blobs from disk first — if this partially fails,
     // we'd rather retry a delete than leave a decryptable orphan file behind
     // after the DB row is already gone.
-    await Promise.all(asset.versions.map((v) => deleteMediaFile(v.storageKey)));
+    await Promise.all(asset.versions.map((v) => deleteMediaFile(v.storageProvider, v.storageKey)));
 
     await prisma.mediaAsset.delete({ where: { id: asset.id } });
 

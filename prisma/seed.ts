@@ -58,8 +58,17 @@ async function main() {
         label: "Business Affairs",
       },
     }),
+    // Phase 1 (CallSheet Ops): the producer is a secondary user of the
+    // module — a consumer of variance reporting, not a day-to-day editor —
+    // per backlot-pass2-deep-dive.md §2.1. Added now specifically to have
+    // a real role to grant callsheet_ops:view_variance to below.
+    prisma.role.upsert({
+      where: { orgId_key: { orgId: org.id, key: "producer" } },
+      update: {},
+      create: { id: "role_producer", orgId: org.id, key: "producer", label: "Producer" },
+    }),
   ]);
-  const [firstAd, coordinator, locationManager, businessAffairs] = roles;
+  const [firstAd, coordinator, locationManager, businessAffairs, producer] = roles;
 
   // ---- role_permission grid ------------------------------------------
   // module_key : capability. "view" is what makes a module appear in the
@@ -74,6 +83,21 @@ async function main() {
     [coordinator.id, "callsheet_ops", "view"],
     [coordinator.id, "callsheet_ops", "edit"],
     [coordinator.id, "callsheet_ops", "dispatch"],
+    [coordinator.id, "callsheet_ops", "dpr_submit"],
+
+    // callsheet_ops:view_variance is deliberately separate from the
+    // module's general "view" capability — per phase-1-findings.md sign-
+    // off answer (e): working-hours/variance data (actual call/wrap
+    // times, overtime by department) is the direct product consequence
+    // of the Hema Committee compliance point in backlot-pass2-deep-dive.md
+    // §2.6 ("a system that produces an auditable record of actual working
+    // hours is genuinely valuable to the company's compliance position").
+    // That's exactly the data this capability gates, so it's granted to
+    // production leadership and the producer, not to every CallSheet Ops
+    // viewer by default — a 1st AD who can `view`/`edit` a call sheet does
+    // NOT get it here without a separate grant.
+    [producer.id, "callsheet_ops", "view_variance"],
+    [firstAd.id, "callsheet_ops", "view_variance"],
 
     [locationManager.id, "locationbank", "view"],
     [locationManager.id, "locationbank", "edit"],
